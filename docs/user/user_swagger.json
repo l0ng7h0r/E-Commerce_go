@@ -629,7 +629,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.RegisterReq"
+                            "$ref": "#/definitions/domain.UserRegisterReq"
                         }
                     }
                 ],
@@ -916,7 +916,18 @@
                 }
             }
         },
-        "domain.RegisterReq": {
+        "domain.UpdateCartItemReq": {
+            "type": "object",
+            "required": [
+                "quantity"
+            ],
+            "properties": {
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
+        "domain.UserRegisterReq": {
             "type": "object",
             "required": [
                 "email",
@@ -928,21 +939,6 @@
                 },
                 "password": {
                     "type": "string"
-                },
-                "role": {
-                    "description": "Optional, default to \"user\"",
-                    "type": "string"
-                }
-            }
-        },
-        "domain.UpdateCartItemReq": {
-            "type": "object",
-            "required": [
-                "quantity"
-            ],
-            "properties": {
-                "quantity": {
-                    "type": "integer"
                 }
             }
         }

@@ -635,7 +635,7 @@ const docTemplateuser = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.RegisterReq"
+                            "$ref": "#/definitions/domain.UserRegisterReq"
                         }
                     }
                 ],
@@ -922,7 +922,18 @@ const docTemplateuser = `{
                 }
             }
         },
-        "domain.RegisterReq": {
+        "domain.UpdateCartItemReq": {
+            "type": "object",
+            "required": [
+                "quantity"
+            ],
+            "properties": {
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
+        "domain.UserRegisterReq": {
             "type": "object",
             "required": [
                 "email",
@@ -934,21 +945,6 @@ const docTemplateuser = `{
                 },
                 "password": {
                     "type": "string"
-                },
-                "role": {
-                    "description": "Optional, default to \"user\"",
-                    "type": "string"
-                }
-            }
-        },
-        "domain.UpdateCartItemReq": {
-            "type": "object",
-            "required": [
-                "quantity"
-            ],
-            "properties": {
-                "quantity": {
-                    "type": "integer"
                 }
             }
         }

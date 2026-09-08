@@ -20,16 +20,21 @@ func NewUserAuthHandler(authUsecase *usecase.AuthUsecase) *UserAuthHandler {
 // @Tags Customer Auth
 // @Accept json
 // @Produce json
-// @Param request body domain.RegisterReq true "Register Request"
+// @Param request body domain.UserRegisterReq true "Register Request"
 // @Success 201 {object} domain.AuthResponse
 // @Failure 400 {object} map[string]string
 // @Router /user/register [post]
 func (h *UserAuthHandler) Register(c fiber.Ctx) error {
-	var req domain.RegisterReq
-	if err := c.Bind().Body(&req); err != nil {
+	var input domain.UserRegisterReq
+	if err := c.Bind().Body(&input); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
-	req.Role = "user" // Ensure customer role
+
+	req := domain.RegisterReq{
+		Email:    input.Email,
+		Password: input.Password,
+		Role:     "user",
+	}
 
 	res, err := h.authUsecase.Register(&req)
 	if err != nil {

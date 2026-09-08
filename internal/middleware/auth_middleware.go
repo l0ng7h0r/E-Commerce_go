@@ -23,12 +23,13 @@ func (m *AuthMiddleware) Auth() fiber.Handler {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Authorization header required"})
 		}
 
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid Authorization header format"})
+		tokenStr := strings.TrimSpace(authHeader)
+		if strings.HasPrefix(tokenStr, "Bearer ") {
+			tokenStr = strings.TrimPrefix(tokenStr, "Bearer ")
+		} else if strings.HasPrefix(tokenStr, "bearer ") {
+			tokenStr = strings.TrimPrefix(tokenStr, "bearer ")
 		}
 
-		tokenStr := parts[1]
 		claims, err := security.ValidateToken(tokenStr, m.cfg.JWTSecret)
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid or expired token"})

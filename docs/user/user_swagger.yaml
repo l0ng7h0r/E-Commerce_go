@@ -171,25 +171,22 @@ definitions:
     required:
     - refresh_token
     type: object
-  domain.RegisterReq:
-    properties:
-      email:
-        type: string
-      password:
-        type: string
-      role:
-        description: Optional, default to "user"
-        type: string
-    required:
-    - email
-    - password
-    type: object
   domain.UpdateCartItemReq:
     properties:
       quantity:
         type: integer
     required:
     - quantity
+    type: object
+  domain.UserRegisterReq:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
     type: object
 host: localhost:3000
 info:
@@ -589,7 +586,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.RegisterReq'
+          $ref: '#/definitions/domain.UserRegisterReq'
       produces:
       - application/json
       responses:

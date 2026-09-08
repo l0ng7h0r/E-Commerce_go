@@ -74,7 +74,7 @@ func (r *ProductRepository) CreateProduct(p *domain.Product) (*domain.Product, e
 }
 
 func (r *ProductRepository) GetAllProducts() ([]*domain.Product, error) {
-	query := `SELECT id, seller_id, COALESCE(category_id, ''), name, description, price, stock, COALESCE(image_url, ''), created_at, updated_at FROM products ORDER BY created_at DESC`
+	query := `SELECT id, seller_id, COALESCE(category_id::text, ''), name, description, price, stock, COALESCE(image_url, ''), created_at, updated_at FROM products ORDER BY created_at DESC`
 	rows, err := r.db.Query(query)
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func (r *ProductRepository) GetAllProducts() ([]*domain.Product, error) {
 }
 
 func (r *ProductRepository) GetProductByID(id string) (*domain.Product, error) {
-	query := `SELECT id, seller_id, COALESCE(category_id, ''), name, description, price, stock, COALESCE(image_url, ''), created_at, updated_at FROM products WHERE id = $1`
+	query := `SELECT id, seller_id, COALESCE(category_id::text, ''), name, description, price, stock, COALESCE(image_url, ''), created_at, updated_at FROM products WHERE id = $1`
 	p := &domain.Product{}
 	err := r.db.QueryRow(query, id).Scan(&p.ID, &p.SellerID, &p.CategoryID, &p.Name, &p.Description, &p.Price, &p.Stock, &p.ImageURL, &p.CreatedAt, &p.UpdatedAt)
 	if err != nil {
@@ -106,7 +106,7 @@ func (r *ProductRepository) GetProductByID(id string) (*domain.Product, error) {
 }
 
 func (r *ProductRepository) GetProductsBySellerID(sellerID string) ([]*domain.Product, error) {
-	query := `SELECT id, seller_id, COALESCE(category_id, ''), name, description, price, stock, COALESCE(image_url, ''), created_at, updated_at FROM products WHERE seller_id = $1 ORDER BY created_at DESC`
+	query := `SELECT id, seller_id, COALESCE(category_id::text, ''), name, description, price, stock, COALESCE(image_url, ''), created_at, updated_at FROM products WHERE seller_id = $1 ORDER BY created_at DESC`
 	rows, err := r.db.Query(query, sellerID)
 	if err != nil {
 		return nil, err
