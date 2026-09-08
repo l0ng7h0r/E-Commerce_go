@@ -1,0 +1,614 @@
+basePath: /api/v2
+definitions:
+  domain.AddCartItemReq:
+    properties:
+      product_id:
+        type: string
+      quantity:
+        type: integer
+    required:
+    - product_id
+    - quantity
+    type: object
+  domain.AuthResponse:
+    properties:
+      access_token:
+        type: string
+      email:
+        type: string
+      refresh_token:
+        type: string
+      roles:
+        items:
+          type: string
+        type: array
+      user_id:
+        type: string
+    type: object
+  domain.Cart:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/domain.CartItem'
+        type: array
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  domain.CartItem:
+    properties:
+      cart_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      product:
+        $ref: '#/definitions/domain.Product'
+      product_id:
+        type: string
+      quantity:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  domain.Category:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  domain.CreateOrderReq:
+    properties:
+      logistic_branch:
+        type: string
+    type: object
+  domain.CreatePaymentReq:
+    properties:
+      order_id:
+        type: string
+    required:
+    - order_id
+    type: object
+  domain.LoginReq:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  domain.Order:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      logistic_branch:
+        type: string
+      order_items:
+        items:
+          $ref: '#/definitions/domain.OrderItem'
+        type: array
+      status:
+        type: string
+      total_amount:
+        type: number
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  domain.OrderItem:
+    properties:
+      id:
+        type: string
+      order_id:
+        type: string
+      price:
+        type: number
+      product:
+        $ref: '#/definitions/domain.Product'
+      product_id:
+        type: string
+      quantity:
+        type: integer
+    type: object
+  domain.Payment:
+    properties:
+      amount:
+        type: number
+      created_at:
+        type: string
+      id:
+        type: string
+      order_id:
+        type: string
+      status:
+        type: string
+      transaction_id:
+        type: string
+    type: object
+  domain.Product:
+    properties:
+      category_id:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      image_url:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      seller_id:
+        type: string
+      stock:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  domain.RefreshTokenReq:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  domain.RegisterReq:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      role:
+        description: Optional, default to "user"
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  domain.UpdateCartItemReq:
+    properties:
+      quantity:
+        type: integer
+    required:
+    - quantity
+    type: object
+host: localhost:3000
+info:
+  contact: {}
+  description: Role-Based Microservices API Monorepo (User, Seller, Admin)
+  title: E-Commerce API Platform
+  version: "2.0"
+paths:
+  /user/cart:
+    delete:
+      description: Clear all items from cart
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Clear Cart
+      tags:
+      - Customer Cart
+    get:
+      description: View user's shopping cart
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Cart'
+      security:
+      - BearerAuth: []
+      summary: View Cart
+      tags:
+      - Customer Cart
+  /user/cart/items:
+    post:
+      consumes:
+      - application/json
+      description: Add product to shopping cart
+      parameters:
+      - description: Add Item Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.AddCartItemReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Cart'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add Item to Cart
+      tags:
+      - Customer Cart
+  /user/cart/items/{productId}:
+    delete:
+      description: Remove specific product from cart
+      parameters:
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Cart'
+      security:
+      - BearerAuth: []
+      summary: Remove Item from Cart
+      tags:
+      - Customer Cart
+    put:
+      consumes:
+      - application/json
+      description: Update quantity of item in cart
+      parameters:
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: string
+      - description: Update Item Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateCartItemReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Cart'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Cart Item Quantity
+      tags:
+      - Customer Cart
+  /user/categories:
+    get:
+      description: Get list of all product categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Category'
+            type: array
+      summary: List Categories
+      tags:
+      - Customer Products
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: Login as customer
+      parameters:
+      - description: Login Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.LoginReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.AuthResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Customer Login
+      tags:
+      - Customer Auth
+  /user/logout:
+    post:
+      consumes:
+      - application/json
+      description: Revoke customer refresh token
+      parameters:
+      - description: Refresh Token Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RefreshTokenReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Customer Logout
+      tags:
+      - Customer Auth
+  /user/orders:
+    get:
+      description: Get list of past orders created by logged-in user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Order'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: View Order History
+      tags:
+      - Customer Orders
+    post:
+      consumes:
+      - application/json
+      description: Create a new order from items currently in cart
+      parameters:
+      - description: Order Request
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/domain.CreateOrderReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.Order'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create Order (Checkout)
+      tags:
+      - Customer Orders
+  /user/orders/{id}:
+    get:
+      description: Get specific order details by ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Order'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Order Details
+      tags:
+      - Customer Orders
+  /user/payments:
+    post:
+      consumes:
+      - application/json
+      description: Make payment for an existing order by supplying order_id
+      parameters:
+      - description: Payment Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreatePaymentReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.Payment'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create Payment for Order
+      tags:
+      - Customer Payments
+  /user/payments/order/{orderId}:
+    get:
+      description: Get payment status for order by order ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: orderId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Payment'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Payment Status
+      tags:
+      - Customer Payments
+  /user/products:
+    get:
+      description: Browse all available products
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Product'
+            type: array
+      summary: List Products
+      tags:
+      - Customer Products
+  /user/products/{id}:
+    get:
+      description: Get product detail by ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Product'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Product Detail
+      tags:
+      - Customer Products
+  /user/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refresh customer access token
+      parameters:
+      - description: Refresh Token Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RefreshTokenReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.AuthResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Refresh Token
+      tags:
+      - Customer Auth
+  /user/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new customer account
+      parameters:
+      - description: Register Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RegisterReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Customer Registration
+      tags:
+      - Customer Auth
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
