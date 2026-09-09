@@ -14,6 +14,34 @@ func NewSellerProductHandler(productUsecase *usecase.ProductUsecase) *SellerProd
 	return &SellerProductHandler{productUsecase: productUsecase}
 }
 
+type createCategoryReq struct {
+	Name string `json:"name" binding:"required"`
+}
+
+// CreateCategory godoc
+// @Summary Seller Create Category
+// @Description Create a new product category as seller
+// @Tags Seller Products
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body createCategoryReq true "Category Request"
+// @Success 201 {object} domain.Category
+// @Failure 400 {object} map[string]string
+// @Router /seller/categories [post]
+func (h *SellerProductHandler) CreateCategory(c fiber.Ctx) error {
+	var req createCategoryReq
+	if err := c.Bind().Body(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	cat, err := h.productUsecase.CreateCategory(req.Name)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(fiber.StatusCreated).JSON(cat)
+}
+
 // CreateProduct godoc
 // @Summary Create Product
 // @Description Add a new product for seller store

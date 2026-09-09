@@ -12,6 +12,7 @@ type Config struct {
 	JWTSecret        string
 	JWTAccessExpiry  string
 	JWTRefreshExpiry string
+	PhajaySecretKey  string
 }
 
 func Load() *Config {
@@ -24,12 +25,17 @@ func Load() *Config {
 
 	dbDsn := os.Getenv("DB_DSN")
 	if dbDsn == "" {
-		dbDsn = "postgresql://mydatabase:ecommerce1234@localhost:5435/dbecommerce?sslmode=disable"
+		dbDsn = "postgresql://mydatabase:ecommerce1234@localhost:5432/dbecommerce?sslmode=disable"
 	}
 
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
-		jwtSecret = "ECOMMERCE_SUPERSECRET_KEY"
+		jwtSecret = "ecommerce_supersecret_key"
+	}
+
+	phajaySecretKey := os.Getenv("PHAJAY_SECRET_KEY")
+	if phajaySecretKey == "" {
+		phajaySecretKey = "phajay_secret_key"
 	}
 
 	return &Config{
@@ -38,5 +44,6 @@ func Load() *Config {
 		JWTSecret:        jwtSecret,
 		JWTAccessExpiry:  "15m",
 		JWTRefreshExpiry: "168h",
+		PhajaySecretKey:  phajaySecretKey,
 	}
 }

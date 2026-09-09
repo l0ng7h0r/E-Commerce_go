@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/l0ng7h0r/ecommerce/internal/domain"
 	"github.com/l0ng7h0r/ecommerce/internal/usecase"
+	"github.com/l0ng7h0r/ecommerce/pkg/phajay"
 )
 
 type UserPaymentHandler struct {
@@ -15,14 +16,14 @@ func NewUserPaymentHandler(paymentUsecase *usecase.PaymentUsecase) *UserPaymentH
 }
 
 // CreatePayment godoc
-// @Summary Create Payment for Order
-// @Description Make payment for an existing order by supplying order_id
+// @Summary Create Phajay Payment Link
+// @Description Make payment for an existing order by supplying order_id. Returns Phajay Payment URL.
 // @Tags Customer Payments
 // @Security BearerAuth
 // @Accept json
 // @Produce json
 // @Param request body domain.CreatePaymentReq true "Payment Request"
-// @Success 201 {object} domain.Payment
+// @Success 201 {object} domain.PaymentResponse
 // @Failure 400 {object} map[string]string
 // @Router /user/payments [post]
 func (h *UserPaymentHandler) CreatePayment(c fiber.Ctx) error {
@@ -32,11 +33,34 @@ func (h *UserPaymentHandler) CreatePayment(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
 
-	payment, err := h.paymentUsecase.CreatePayment(userID, &req)
+	paymentRes, err := h.paymentUsecase.CreatePayment(userID, &req)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.Status(fiber.StatusCreated).JSON(payment)
+	return c.Status(fiber.StatusCreated).JSON(paymentRes)
+}
+
+// PhajayWebhook godoc
+// @Summary Phajay Payment Webhook
+// @Description Webhook callback endpoint invoked by Phajay Payment Gateway
+// @Tags Customer Payments
+// @Accept json
+// @Produce json
+// @Param request body phajay.WebhookPayload true "Webhook Payload"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Router /webhooks/phajay [post]
+func (h *UserPaymentHandler) PhajayWebhook(c fiber.Ctx) error {
+	var payload phajay.WebhookPayload
+	if err := c.Bind().Body(&payload); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid webhook payload"})
+	}
+
+	if err := h.paymentUsecase.HandleWebhook(&payload); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"message": "Webhook processed successfully"})
 }
 
 // GetPaymentByOrder godoc

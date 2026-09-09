@@ -2,26 +2,28 @@ package usecase
 
 import (
 	"errors"
-
-	"github.com/google/uuid"
+	"fmt"
 
 	"github.com/l0ng7h0r/ecommerce/internal/domain"
 	"github.com/l0ng7h0r/ecommerce/internal/repository"
+	"github.com/l0ng7h0r/ecommerce/pkg/phajay"
 )
 
 type PaymentUsecase struct {
-	paymentRepo *repository.PaymentRepository
-	orderRepo   *repository.OrderRepository
+	paymentRepo  *repository.PaymentRepository
+	orderRepo    *repository.OrderRepository
+	phajayClient *phajay.Client
 }
 
-func NewPaymentUsecase(paymentRepo *repository.PaymentRepository, orderRepo *repository.OrderRepository) *PaymentUsecase {
+func NewPaymentUsecase(paymentRepo *repository.PaymentRepository, orderRepo *repository.OrderRepository, phajayClient *phajay.Client) *PaymentUsecase {
 	return &PaymentUsecase{
-		paymentRepo: paymentRepo,
-		orderRepo:   orderRepo,
+		paymentRepo:  paymentRepo,
+		orderRepo:    orderRepo,
+		phajayClient: phajayClient,
 	}
 }
 
-func (u *PaymentUsecase) CreatePayment(userID string, req *domain.CreatePaymentReq) (*domain.Payment, error) {
+func (u *PaymentUsecase) CreatePayment(userID string, req *domain.CreatePaymentReq) (*domain.PaymentResponse, error) {
 	order, err := u.orderRepo.GetOrderByID(req.OrderID)
 	if err != nil {
 		return nil, errors.New("order not found")
@@ -31,15 +33,36 @@ func (u *PaymentUsecase) CreatePayment(userID string, req *domain.CreatePaymentR
 		return nil, errors.New("unauthorized order payment")
 	}
 
-	if order.Status == "paid" {
+	if order.Status == "paid" || order.Status == "confirmed" {
 		return nil, errors.New("order is already paid")
 	}
 
+	// Check if existing pending payment link exists
+	existingPayment, _ := u.paymentRepo.GetPaymentByOrderID(order.ID)
+	if existingPayment != nil && existingPayment.PaymentURL != "" && existingPayment.Status == "pending" {
+		return &domain.PaymentResponse{
+			PaymentID:  existingPayment.ID,
+			OrderID:    existingPayment.OrderID,
+			Amount:     existingPayment.Amount,
+			Status:     existingPayment.Status,
+			PaymentURL: existingPayment.PaymentURL,
+		}, nil
+	}
+
+	description := fmt.Sprintf("Order %s", order.ID[:8])
+
+	// Call Phajay API to create payment link
+	phajayResp, err := u.phajayClient.CreatePaymentLink(order.TotalAmount, description, order.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Phajay payment link: %w", err)
+	}
+
 	payment := &domain.Payment{
-		OrderID:       order.ID,
-		Amount:        order.TotalAmount,
-		Status:        "completed",
-		TransactionID: "TXN-" + uuid.New().String()[:8],
+		OrderID:    order.ID,
+		Amount:     order.TotalAmount,
+		Status:     "pending",
+		Method:     "phajay",
+		PaymentURL: phajayResp.PaymentURL,
 	}
 
 	createdPayment, err := u.paymentRepo.CreatePayment(payment)
@@ -47,9 +70,37 @@ func (u *PaymentUsecase) CreatePayment(userID string, req *domain.CreatePaymentR
 		return nil, err
 	}
 
-	_ = u.orderRepo.UpdateOrderStatus(order.ID, "paid")
+	return &domain.PaymentResponse{
+		PaymentID:  createdPayment.ID,
+		OrderID:    createdPayment.OrderID,
+		Amount:     createdPayment.Amount,
+		Status:     createdPayment.Status,
+		PaymentURL: phajayResp.PaymentURL,
+	}, nil
+}
 
-	return createdPayment, nil
+func (u *PaymentUsecase) HandleWebhook(payload *phajay.WebhookPayload) error {
+	payment, err := u.paymentRepo.GetPaymentByOrderID(payload.OrderNo)
+	if err != nil {
+		return fmt.Errorf("payment not found for order: %s", payload.OrderNo)
+	}
+
+	switch payload.Status {
+	case "success":
+		if err := u.paymentRepo.UpdatePaymentStatus(payment.ID, "paid", payload.TransactionID); err != nil {
+			return err
+		}
+		return u.orderRepo.UpdateOrderStatus(payload.OrderNo, "paid")
+	case "failed", "cancelled":
+		if err := u.paymentRepo.UpdatePaymentStatus(payment.ID, "failed", payload.TransactionID); err != nil {
+			return err
+		}
+		_ = u.orderRepo.UpdateOrderStatus(payload.OrderNo, "cancelled")
+		// Restore stock back for cancelled/failed order
+		return u.orderRepo.RestoreStockForOrder(payload.OrderNo)
+	default:
+		return fmt.Errorf("unknown webhook status: %s", payload.Status)
+	}
 }
 
 func (u *PaymentUsecase) GetPaymentByOrderID(orderID, currentUserID string, roles []string) (*domain.Payment, error) {

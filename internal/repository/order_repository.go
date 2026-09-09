@@ -23,6 +23,7 @@ func (r *OrderRepository) CreateOrder(order *domain.Order, items []domain.OrderI
 	}
 	defer tx.Rollback()
 
+	// 1. Insert order
 	query := `
 		INSERT INTO orders (user_id, total_amount, status, logistic_branch)
 		VALUES ($1, $2, $3, $4)
@@ -33,9 +34,25 @@ func (r *OrderRepository) CreateOrder(order *domain.Order, items []domain.OrderI
 		return nil, fmt.Errorf("failed to insert order: %w", err)
 	}
 
+	// 2. Process order items & deduct stock atomically
 	itemQuery := `INSERT INTO order_items (order_id, product_id, quantity, price) VALUES ($1, $2, $3, $4) RETURNING id`
+	deductStockQuery := `UPDATE products SET stock = stock - $1, updated_at = NOW() WHERE id = $2 AND stock >= $1`
+
 	for i := range items {
 		items[i].OrderID = order.ID
+
+		// Deduct stock atomically
+		res, err := tx.Exec(deductStockQuery, items[i].Quantity, items[i].ProductID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to deduct stock for product %s: %w", items[i].ProductID, err)
+		}
+
+		rowsAffected, err := res.RowsAffected()
+		if err != nil || rowsAffected == 0 {
+			return nil, fmt.Errorf("insufficient stock for product ID %s", items[i].ProductID)
+		}
+
+		// Insert item
 		err = tx.QueryRow(itemQuery, items[i].OrderID, items[i].ProductID, items[i].Quantity, items[i].Price).Scan(&items[i].ID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to insert order item: %w", err)
@@ -47,6 +64,16 @@ func (r *OrderRepository) CreateOrder(order *domain.Order, items []domain.OrderI
 	}
 	order.OrderItems = items
 	return order, nil
+}
+
+func (r *OrderRepository) RestoreStockForOrder(orderID string) error {
+	query := `
+		UPDATE products p
+		SET stock = p.stock + oi.quantity, updated_at = NOW()
+		FROM order_items oi
+		WHERE oi.product_id = p.id AND oi.order_id = $1`
+	_, err := r.db.Exec(query, orderID)
+	return err
 }
 
 func (r *OrderRepository) GetOrderByID(id string) (*domain.Order, error) {

@@ -6,7 +6,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
 
-	"github.com/l0ng7h0r/ecommerce/docs/swagger"
 	adminHandler "github.com/l0ng7h0r/ecommerce/internal/handler/admin"
 	sellerHandler "github.com/l0ng7h0r/ecommerce/internal/handler/seller"
 	userHandler "github.com/l0ng7h0r/ecommerce/internal/handler/user"
@@ -16,6 +15,12 @@ import (
 	"github.com/l0ng7h0r/ecommerce/internal/usecase"
 	"github.com/l0ng7h0r/ecommerce/pkg/config"
 	"github.com/l0ng7h0r/ecommerce/pkg/database"
+	"github.com/l0ng7h0r/ecommerce/pkg/phajay"
+
+	"github.com/gofiber/contrib/v3/swaggo"
+	_ "github.com/l0ng7h0r/ecommerce/docs/admin"
+	_ "github.com/l0ng7h0r/ecommerce/docs/seller"
+	_ "github.com/l0ng7h0r/ecommerce/docs/user"
 )
 
 // @title           E-Commerce API Platform
@@ -36,6 +41,9 @@ func main() {
 	}
 	defer db.Close()
 
+	// --- Phajay Payment Gateway Client ---
+	phajayClient := phajay.NewClient(cfg.PhajaySecretKey)
+
 	// --- Repositories ---
 	userRepo := repository.NewUserRepository(db)
 	productRepo := repository.NewProductRepository(db)
@@ -48,7 +56,7 @@ func main() {
 	productUsecase := usecase.NewProductUsecase(productRepo)
 	cartUsecase := usecase.NewCartUsecase(cartRepo, productRepo)
 	orderUsecase := usecase.NewOrderUsecase(orderRepo, cartRepo, productRepo)
-	paymentUsecase := usecase.NewPaymentUsecase(paymentRepo, orderRepo)
+	paymentUsecase := usecase.NewPaymentUsecase(paymentRepo, orderRepo, phajayClient)
 
 	// --- Handlers ---
 	// Customer Handlers
@@ -74,10 +82,24 @@ func main() {
 	app := fiber.New()
 	app.Use(cors.New())
 
-	// --- Register Swagger Portals ---
-	swagger.Setup(app)
+	// --- 3 Swagger Portals ---
+	app.Get("/swagger/user/*", swaggo.New(swaggo.Config{
+		Title: "User API Portal",
+		URL:   "/swagger/user/doc.json",
+	}))
+	app.Get("/swagger/seller/*", swaggo.New(swaggo.Config{
+		Title: "Seller API Portal",
+		URL:   "/swagger/seller/doc.json",
+	}))
+	app.Get("/swagger/admin/*", swaggo.New(swaggo.Config{
+		Title: "Admin API Portal",
+		URL:   "/swagger/admin/doc.json",
+	}))
 
 	api := app.Group("/api/v2")
+
+	// ── Public Webhooks ────────────────────────────────────────────────────────
+	api.Post("/webhooks/phajay", uPayH.PhajayWebhook)
 
 	// ═══════════════════════════════════════════════════════════════════════════
 	// 1. CUSTOMER ROUTER PORTAL (/api/v2/user)
@@ -106,7 +128,7 @@ func main() {
 
 	// Orders & Order History
 	uAuth.Post("/orders", uOrderH.CreateOrder)
-	uAuth.Get("/orders", uOrderH.GetMyOrders) // <-- Feature: ประวัติการสั่งซื้อ (Order History)
+	uAuth.Get("/orders", uOrderH.GetMyOrders)
 	uAuth.Get("/orders/:id", uOrderH.GetOrderByID)
 
 	// Payments
@@ -128,6 +150,7 @@ func main() {
 	sAuth.Get("/products", sProdH.GetMyProducts)
 	sAuth.Put("/products/:id", sProdH.UpdateProduct)
 	sAuth.Delete("/products/:id", sProdH.DeleteProduct)
+	sAuth.Post("/categories", sProdH.CreateCategory) // <-- Feature: Seller Category Creation
 
 	// ═══════════════════════════════════════════════════════════════════════════
 	// 3. ADMIN ROUTER PORTAL (/api/v2/admin)
