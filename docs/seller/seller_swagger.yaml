@@ -1,6 +1,16 @@
 basePath: /api/v2
 definitions:
-  domain.AuthResponse:
+  github_com_l0ng7h0r_ecommerce_internal_domain.AddCartItemReq:
+    properties:
+      product_id:
+        type: string
+      quantity:
+        type: integer
+    required:
+    - product_id
+    - quantity
+    type: object
+  github_com_l0ng7h0r_ecommerce_internal_domain.AuthResponse:
     properties:
       access_token:
         type: string
@@ -15,7 +25,62 @@ definitions:
       user_id:
         type: string
     type: object
-  domain.CreateProductReq:
+  github_com_l0ng7h0r_ecommerce_internal_domain.Cart:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.CartItem'
+        type: array
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  github_com_l0ng7h0r_ecommerce_internal_domain.CartItem:
+    properties:
+      cart_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      product:
+        $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Product'
+      product_id:
+        type: string
+      quantity:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  github_com_l0ng7h0r_ecommerce_internal_domain.Category:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_l0ng7h0r_ecommerce_internal_domain.CreateOrderReq:
+    properties:
+      logistic_branch:
+        type: string
+    type: object
+  github_com_l0ng7h0r_ecommerce_internal_domain.CreatePaymentReq:
+    properties:
+      order_id:
+        type: string
+    required:
+    - order_id
+    type: object
+  github_com_l0ng7h0r_ecommerce_internal_domain.CreateProductReq:
     properties:
       category_id:
         type: string
@@ -34,7 +99,7 @@ definitions:
     - price
     - stock
     type: object
-  domain.LoginReq:
+  github_com_l0ng7h0r_ecommerce_internal_domain.LoginReq:
     properties:
       email:
         type: string
@@ -44,7 +109,75 @@ definitions:
     - email
     - password
     type: object
-  domain.Product:
+  github_com_l0ng7h0r_ecommerce_internal_domain.Order:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      logistic_branch:
+        type: string
+      order_items:
+        items:
+          $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.OrderItem'
+        type: array
+      status:
+        type: string
+      total_amount:
+        type: number
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  github_com_l0ng7h0r_ecommerce_internal_domain.OrderItem:
+    properties:
+      id:
+        type: string
+      order_id:
+        type: string
+      price:
+        type: number
+      product:
+        $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Product'
+      product_id:
+        type: string
+      quantity:
+        type: integer
+    type: object
+  github_com_l0ng7h0r_ecommerce_internal_domain.Payment:
+    properties:
+      amount:
+        type: number
+      created_at:
+        type: string
+      id:
+        type: string
+      method:
+        type: string
+      order_id:
+        type: string
+      payment_url:
+        type: string
+      status:
+        type: string
+      transaction_id:
+        type: string
+    type: object
+  github_com_l0ng7h0r_ecommerce_internal_domain.PaymentResponse:
+    properties:
+      amount:
+        type: number
+      order_id:
+        type: string
+      payment_id:
+        type: string
+      payment_url:
+        type: string
+      status:
+        type: string
+    type: object
+  github_com_l0ng7h0r_ecommerce_internal_domain.Product:
     properties:
       category_id:
         type: string
@@ -67,14 +200,41 @@ definitions:
       updated_at:
         type: string
     type: object
-  domain.RefreshTokenReq:
+  github_com_l0ng7h0r_ecommerce_internal_domain.RefreshTokenReq:
     properties:
       refresh_token:
         type: string
     required:
     - refresh_token
     type: object
-  domain.UpdateProductReq:
+  github_com_l0ng7h0r_ecommerce_internal_domain.RegisterReq:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      role:
+        description: Optional, default to "user"
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  github_com_l0ng7h0r_ecommerce_internal_domain.UpdateCartItemReq:
+    properties:
+      quantity:
+        type: integer
+    required:
+    - quantity
+    type: object
+  github_com_l0ng7h0r_ecommerce_internal_domain.UpdateOrderStatusReq:
+    properties:
+      status:
+        type: string
+    required:
+    - status
+    type: object
+  github_com_l0ng7h0r_ecommerce_internal_domain.UpdateProductReq:
     properties:
       category_id:
         type: string
@@ -89,6 +249,57 @@ definitions:
       stock:
         type: integer
     type: object
+  github_com_l0ng7h0r_ecommerce_internal_domain.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      roles:
+        items:
+          type: string
+        type: array
+      updated_at:
+        type: string
+    type: object
+  github_com_l0ng7h0r_ecommerce_internal_domain.UserRegisterReq:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  github_com_l0ng7h0r_ecommerce_pkg_phajay.WebhookPayload:
+    properties:
+      amount:
+        type: number
+      orderNo:
+        type: string
+      status:
+        description: success, failed, cancelled
+        type: string
+      transactionId:
+        type: string
+    type: object
+  internal_handler_admin.createCategoryReq:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  internal_handler_seller.createCategoryReq:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
 host: localhost:3000
 info:
   contact: {}
@@ -96,6 +307,301 @@ info:
   title: E-Commerce API Platform
   version: "2.0"
 paths:
+  /admin/categories:
+    post:
+      consumes:
+      - application/json
+      description: Create a new product category
+      parameters:
+      - description: Category Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handler_admin.createCategoryReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Category'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create Category
+      tags:
+      - Admin Categories
+  /admin/login:
+    post:
+      consumes:
+      - application/json
+      description: Login to Admin Management Portal
+      parameters:
+      - description: Login Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.LoginReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.AuthResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Admin Login
+      tags:
+      - Admin Auth
+  /admin/logout:
+    post:
+      consumes:
+      - application/json
+      description: Revoke admin refresh token
+      parameters:
+      - description: Refresh Token Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.RefreshTokenReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Admin Logout
+      tags:
+      - Admin Auth
+  /admin/orders:
+    get:
+      description: Get list of all orders across the system
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Order'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List All System Orders
+      tags:
+      - Admin Order Management
+  /admin/orders/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Update processing status of an order
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Status Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.UpdateOrderStatusReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Order Status
+      tags:
+      - Admin Order Management
+  /admin/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refresh admin access token
+      parameters:
+      - description: Refresh Token Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.RefreshTokenReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.AuthResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Admin Refresh Token
+      tags:
+      - Admin Auth
+  /admin/users:
+    get:
+      description: Get list of all registered users in system
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.User'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List All Users
+      tags:
+      - Admin User Management
+    post:
+      consumes:
+      - application/json
+      description: Create user with specific role (user, seller, admin)
+      parameters:
+      - description: Create User Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.RegisterReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Admin Create User
+      tags:
+      - Admin User Management
+  /admin/users/{id}:
+    delete:
+      description: Delete a user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete User
+      tags:
+      - Admin User Management
+    get:
+      description: Get detailed information of a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.User'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get User Detail
+      tags:
+      - Admin User Management
+  /seller/categories:
+    post:
+      consumes:
+      - application/json
+      description: Create a new product category as seller
+      parameters:
+      - description: Category Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handler_seller.createCategoryReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Category'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Seller Create Category
+      tags:
+      - Seller Products
   /seller/login:
     post:
       consumes:
@@ -107,14 +613,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.LoginReq'
+          $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.LoginReq'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.AuthResponse'
+            $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.AuthResponse'
         "401":
           description: Unauthorized
           schema:
@@ -135,7 +641,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.RefreshTokenReq'
+          $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.RefreshTokenReq'
       produces:
       - application/json
       responses:
@@ -158,7 +664,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/domain.Product'
+              $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Product'
             type: array
       security:
       - BearerAuth: []
@@ -175,14 +681,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.CreateProductReq'
+          $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.CreateProductReq'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/domain.Product'
+            $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Product'
         "400":
           description: Bad Request
           schema:
@@ -238,14 +744,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.UpdateProductReq'
+          $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.UpdateProductReq'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.Product'
+            $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Product'
         "400":
           description: Bad Request
           schema:
@@ -268,14 +774,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/domain.RefreshTokenReq'
+          $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.RefreshTokenReq'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.AuthResponse'
+            $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.AuthResponse'
         "401":
           description: Unauthorized
           schema:
@@ -285,6 +791,445 @@ paths:
       summary: Seller Refresh Token
       tags:
       - Seller Auth
+  /user/cart:
+    delete:
+      description: Clear all items from cart
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Clear Cart
+      tags:
+      - Customer Cart
+    get:
+      description: View user's shopping cart
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Cart'
+      security:
+      - BearerAuth: []
+      summary: View Cart
+      tags:
+      - Customer Cart
+  /user/cart/items:
+    post:
+      consumes:
+      - application/json
+      description: Add product to shopping cart
+      parameters:
+      - description: Add Item Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.AddCartItemReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Cart'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add Item to Cart
+      tags:
+      - Customer Cart
+  /user/cart/items/{productId}:
+    delete:
+      description: Remove specific product from cart
+      parameters:
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Cart'
+      security:
+      - BearerAuth: []
+      summary: Remove Item from Cart
+      tags:
+      - Customer Cart
+    put:
+      consumes:
+      - application/json
+      description: Update quantity of item in cart
+      parameters:
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: string
+      - description: Update Item Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.UpdateCartItemReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Cart'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Cart Item Quantity
+      tags:
+      - Customer Cart
+  /user/categories:
+    get:
+      description: Get list of all product categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Category'
+            type: array
+      summary: List Categories
+      tags:
+      - Customer Products
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: Login as customer
+      parameters:
+      - description: Login Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.LoginReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.AuthResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Customer Login
+      tags:
+      - Customer Auth
+  /user/logout:
+    post:
+      consumes:
+      - application/json
+      description: Revoke customer refresh token
+      parameters:
+      - description: Refresh Token Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.RefreshTokenReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Customer Logout
+      tags:
+      - Customer Auth
+  /user/orders:
+    get:
+      description: Get list of past orders created by logged-in user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Order'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: View Order History
+      tags:
+      - Customer Orders
+    post:
+      consumes:
+      - application/json
+      description: Create a new order from items currently in cart
+      parameters:
+      - description: Order Request
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.CreateOrderReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Order'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create Order (Checkout)
+      tags:
+      - Customer Orders
+  /user/orders/{id}:
+    get:
+      description: Get specific order details by ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Order'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Order Details
+      tags:
+      - Customer Orders
+  /user/payments:
+    post:
+      consumes:
+      - application/json
+      description: Make payment for an existing order by supplying order_id. Returns
+        Phajay Payment URL.
+      parameters:
+      - description: Payment Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.CreatePaymentReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.PaymentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create Phajay Payment Link
+      tags:
+      - Customer Payments
+  /user/payments/order/{orderId}:
+    get:
+      description: Get payment status for order by order ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: orderId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Payment'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Payment Status
+      tags:
+      - Customer Payments
+  /user/products:
+    get:
+      description: Browse all available products
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Product'
+            type: array
+      summary: List Products
+      tags:
+      - Customer Products
+  /user/products/{id}:
+    get:
+      description: Get product detail by ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Product'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Product Detail
+      tags:
+      - Customer Products
+  /user/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refresh customer access token
+      parameters:
+      - description: Refresh Token Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.RefreshTokenReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.AuthResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Refresh Token
+      tags:
+      - Customer Auth
+  /user/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new customer account
+      parameters:
+      - description: Register Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.UserRegisterReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Customer Registration
+      tags:
+      - Customer Auth
+  /webhooks/phajay:
+    post:
+      consumes:
+      - application/json
+      description: Webhook callback endpoint invoked by Phajay Payment Gateway
+      parameters:
+      - description: Webhook Payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_l0ng7h0r_ecommerce_pkg_phajay.WebhookPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Phajay Payment Webhook
+      tags:
+      - Customer Payments
 securityDefinitions:
   BearerAuth:
     in: header

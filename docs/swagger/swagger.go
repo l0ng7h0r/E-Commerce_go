@@ -1,110 +1,86 @@
 package swagger
 
 import (
-	"strings"
+	"html/template"
 
 	"github.com/gofiber/contrib/v3/swaggo"
-	"github.com/gofiber/fiber/v3"
-
-	_ "github.com/l0ng7h0r/ecommerce/docs/admin"
-	_ "github.com/l0ng7h0r/ecommerce/docs/seller"
-	_ "github.com/l0ng7h0r/ecommerce/docs/user"
 )
 
-// Setup registers the 3 Swagger portals and adds Authorize-style portal buttons
-func Setup(app *fiber.App) {
-	// Middleware to inject Swagger Authorize-style buttons next to the Authorize button
-	app.Use("/swagger", func(c fiber.Ctx) error {
-		err := c.Next()
-		if strings.HasSuffix(c.Path(), "index.html") {
-			body := string(c.Response().Body())
-			buttonsHTML := `
-<style>
-  .swagger-ui .portal-switch-container {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    margin-right: 15px;
-  }
-  .swagger-ui .btn.portal-btn {
-    border: 2px solid #49cc90;
-    color: #49cc90;
-    background-color: transparent;
-    border-radius: 4px;
-    font-family: sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-    padding: 4px 16px;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    transition: all 0.2s ease-in-out;
-  }
-  .swagger-ui .btn.portal-btn:hover {
-    background-color: rgba(73, 204, 144, 0.1);
-  }
-  .swagger-ui .btn.portal-btn.user-btn { border-color: #4990e2; color: #4990e2; }
-  .swagger-ui .btn.portal-btn.user-btn:hover { background-color: rgba(73, 144, 226, 0.1); }
-  .swagger-ui .btn.portal-btn.user-btn.active { background-color: #4990e2; color: #fff; }
+// NavScript is a custom JavaScript injected into Swagger UI to add Portal Navigation buttons
+const NavScript = template.JS(`
+window.addEventListener('DOMContentLoaded', function() {
+	var interval = setInterval(function() {
+		var target = document.querySelector('.auth-wrapper') || document.querySelector('.scheme-container') || document.querySelector('.topbar-wrapper');
+		if (target) {
+			if (document.getElementById('portal-nav-buttons')) return;
 
-  .swagger-ui .btn.portal-btn.seller-btn { border-color: #f5a623; color: #f5a623; }
-  .swagger-ui .btn.portal-btn.seller-btn:hover { background-color: rgba(245, 166, 35, 0.1); }
-  .swagger-ui .btn.portal-btn.seller-btn.active { background-color: #f5a623; color: #fff; }
+			var container = document.createElement('div');
+			container.id = 'portal-nav-buttons';
+			container.style.cssText = 'display: inline-flex; gap: 8px; margin-right: 15px; align-items: center;';
 
-  .swagger-ui .btn.portal-btn.admin-btn { border-color: #e54949; color: #e54949; }
-  .swagger-ui .btn.portal-btn.admin-btn:hover { background-color: rgba(229, 73, 73, 0.1); }
-  .swagger-ui .btn.portal-btn.admin-btn.active { background-color: #e54949; color: #fff; }
-</style>
-<script>
-  window.addEventListener('DOMContentLoaded', function() {
-    var checkExist = setInterval(function() {
-      var authWrapper = document.querySelector('.swagger-ui .auth-wrapper') || document.querySelector('.swagger-ui .scheme-container');
-      if (authWrapper && !document.querySelector('.portal-switch-container')) {
-        var container = document.createElement('div');
-        container.className = 'portal-switch-container';
-        
-        var currentPath = window.location.pathname;
-        
-        var userActive = currentPath.includes('/user/') ? ' active' : '';
-        var sellerActive = currentPath.includes('/seller/') ? ' active' : '';
-        var adminActive = currentPath.includes('/admin/') ? ' active' : '';
+			var portals = [
+				{ name: 'User Portal', url: '/swagger/user/index.html', activeColor: '#49cc90' },
+				{ name: 'Seller Portal', url: '/swagger/seller/index.html', activeColor: '#fca130' },
+				{ name: 'Admin Portal', url: '/swagger/admin/index.html', activeColor: '#4990e2' }
+			];
 
-        container.innerHTML = 
-          '<a href="/swagger/user/index.html" class="btn portal-btn user-btn' + userActive + '">User Portal</a>' +
-          '<a href="/swagger/seller/index.html" class="btn portal-btn seller-btn' + sellerActive + '">Seller Portal</a>' +
-          '<a href="/swagger/admin/index.html" class="btn portal-btn admin-btn' + adminActive + '">Admin Portal</a>';
-        
-        authWrapper.insertBefore(container, authWrapper.firstChild);
-        clearInterval(checkExist);
-      }
-    }, 100);
-  });
-</script>
-</body>`
-			newBody := strings.Replace(body, "</body>", buttonsHTML, 1)
-			c.Response().SetBodyString(newBody)
+			var currentPath = window.location.pathname;
+
+			portals.forEach(function(p) {
+				var btn = document.createElement('a');
+				btn.href = p.url;
+				btn.innerText = p.name;
+				var isActive = currentPath.indexOf(p.url.replace('/index.html', '')) !== -1;
+				
+				var bg = isActive ? p.activeColor : 'transparent';
+				var textColor = isActive ? '#ffffff' : p.activeColor;
+				
+				btn.style.cssText = 'display: inline-block; padding: 4px 14px; font-family: sans-serif; font-size: 13px; font-weight: bold; text-decoration: none; color: ' + textColor + '; border: 2px solid ' + p.activeColor + '; border-radius: 4px; background: ' + bg + '; transition: all 0.2s ease-in-out; cursor: pointer;';
+				
+				if (!isActive) {
+					btn.onmouseover = function() { btn.style.background = p.activeColor; btn.style.color = '#ffffff'; };
+					btn.onmouseout = function() { btn.style.background = 'transparent'; btn.style.color = p.activeColor; };
+				}
+
+				container.appendChild(btn);
+			});
+
+			if (target.firstChild) {
+				target.insertBefore(container, target.firstChild);
+			} else {
+				target.appendChild(container);
+			}
 		}
-		return err
-	})
+	}, 200);
+});
+`)
 
-	// 1. User Swagger Portal
-	app.Get("/swagger/user/*", swaggo.New(swaggo.Config{
+// GetUserConfig returns Swaggo Config for User Portal with navigation buttons
+func GetUserConfig() swaggo.Config {
+	return swaggo.Config{
 		Title:        "User API Portal",
 		URL:          "/swagger/user/doc.json",
 		InstanceName: "user",
-	}))
+		CustomScript: NavScript,
+	}
+}
 
-	// 2. Seller Swagger Portal
-	app.Get("/swagger/seller/*", swaggo.New(swaggo.Config{
+// GetSellerConfig returns Swaggo Config for Seller Portal with navigation buttons
+func GetSellerConfig() swaggo.Config {
+	return swaggo.Config{
 		Title:        "Seller API Portal",
 		URL:          "/swagger/seller/doc.json",
 		InstanceName: "seller",
-	}))
+		CustomScript: NavScript,
+	}
+}
 
-	// 3. Admin Swagger Portal
-	app.Get("/swagger/admin/*", swaggo.New(swaggo.Config{
+// GetAdminConfig returns Swaggo Config for Admin Portal with navigation buttons
+func GetAdminConfig() swaggo.Config {
+	return swaggo.Config{
 		Title:        "Admin API Portal",
 		URL:          "/swagger/admin/doc.json",
 		InstanceName: "admin",
-	}))
+		CustomScript: NavScript,
+	}
 }

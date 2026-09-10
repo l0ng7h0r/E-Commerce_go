@@ -2,8 +2,11 @@ package admin
 
 import (
 	"github.com/gofiber/fiber/v3"
+	"github.com/l0ng7h0r/ecommerce/internal/domain"
 	"github.com/l0ng7h0r/ecommerce/internal/usecase"
 )
+
+var _ = domain.Category{}
 
 type AdminCategoryHandler struct {
 	productUsecase *usecase.ProductUsecase

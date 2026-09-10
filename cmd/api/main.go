@@ -10,6 +10,7 @@ import (
 	sellerHandler "github.com/l0ng7h0r/ecommerce/internal/handler/seller"
 	userHandler "github.com/l0ng7h0r/ecommerce/internal/handler/user"
 
+	"github.com/l0ng7h0r/ecommerce/docs/swagger"
 	"github.com/l0ng7h0r/ecommerce/internal/middleware"
 	"github.com/l0ng7h0r/ecommerce/internal/repository"
 	"github.com/l0ng7h0r/ecommerce/internal/usecase"
@@ -82,19 +83,10 @@ func main() {
 	app := fiber.New()
 	app.Use(cors.New())
 
-	// --- 3 Swagger Portals ---
-	app.Get("/swagger/user/*", swaggo.New(swaggo.Config{
-		Title: "User API Portal",
-		URL:   "/swagger/user/doc.json",
-	}))
-	app.Get("/swagger/seller/*", swaggo.New(swaggo.Config{
-		Title: "Seller API Portal",
-		URL:   "/swagger/seller/doc.json",
-	}))
-	app.Get("/swagger/admin/*", swaggo.New(swaggo.Config{
-		Title: "Admin API Portal",
-		URL:   "/swagger/admin/doc.json",
-	}))
+	// --- 3 Swagger Portals with Portal Navigation Buttons ---
+	app.Get("/swagger/user/*", swaggo.New(swagger.GetUserConfig()))
+	app.Get("/swagger/seller/*", swaggo.New(swagger.GetSellerConfig()))
+	app.Get("/swagger/admin/*", swaggo.New(swagger.GetAdminConfig()))
 
 	api := app.Group("/api/v2")
 
@@ -150,7 +142,7 @@ func main() {
 	sAuth.Get("/products", sProdH.GetMyProducts)
 	sAuth.Put("/products/:id", sProdH.UpdateProduct)
 	sAuth.Delete("/products/:id", sProdH.DeleteProduct)
-	sAuth.Post("/categories", sProdH.CreateCategory) // <-- Feature: Seller Category Creation
+	sAuth.Post("/categories", sProdH.CreateCategory)
 
 	// ═══════════════════════════════════════════════════════════════════════════
 	// 3. ADMIN ROUTER PORTAL (/api/v2/admin)

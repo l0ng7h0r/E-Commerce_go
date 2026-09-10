@@ -25,7 +25,7 @@ func Load() *Config {
 
 	dbDsn := os.Getenv("DB_DSN")
 	if dbDsn == "" {
-		dbDsn = "postgresql://mydatabase:ecommerce1234@localhost:5432/dbecommerce?sslmode=disable"
+		dbDsn = "postgresql://mydatabase:ecommerce1234@localhost:5435/dbecommerce?sslmode=disable"
 	}
 
 	jwtSecret := os.Getenv("JWT_SECRET")
