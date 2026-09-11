@@ -990,7 +990,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v2",
 	Schemes:          []string{},
 	Title:            "Customer API Portal",
-	Description:      "API สำหรับลูกค้า: สมัครสมาชิก เข้าสู่ระบบ เลือกดูสินค้า ตะกร้าสินค้า สั่งซื้อ และชำระเงิน",
+	Description:      "API For Customer Management Portal",
 	InfoInstanceName: "user",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

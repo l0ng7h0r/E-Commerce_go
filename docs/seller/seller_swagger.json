@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "info": {
         "contact": {},
-        "description": "API สำหรับร้านค้า: เข้าสู่ระบบ จัดการสินค้า สร้างหมวดหมู่",
+        "description": "API For Seller Management Portal",
         "title": "Seller API Portal",
         "version": "2.0"
     },
