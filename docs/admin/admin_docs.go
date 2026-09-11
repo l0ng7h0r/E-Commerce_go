@@ -7,7 +7,7 @@ const docTemplate = `{
     "swagger": "2.0",
     "info": {
         "contact": {},
-        "description": "API สำหรับผู้ดูแลระบบ: จัดการผู้ใช้ หมวดหมู่สินค้า ออเดอร์ทั้งหมด",
+        "description": "API For Admin Management Portal",
         "title": "Admin Management Portal",
         "version": "2.0"
     },
