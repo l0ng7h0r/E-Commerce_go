@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"time"
+	_ "time/tzdata"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
@@ -17,12 +19,20 @@ import (
 	"github.com/l0ng7h0r/ecommerce/pkg/config"
 	"github.com/l0ng7h0r/ecommerce/pkg/database"
 	"github.com/l0ng7h0r/ecommerce/pkg/phajay"
+	"github.com/l0ng7h0r/ecommerce/pkg/supabase"
 
 	"github.com/gofiber/contrib/v3/swaggo"
 	_ "github.com/l0ng7h0r/ecommerce/docs/admin"
 	_ "github.com/l0ng7h0r/ecommerce/docs/seller"
 	_ "github.com/l0ng7h0r/ecommerce/docs/user"
 )
+
+func init() {
+	loc, err := time.LoadLocation("Asia/Bangkok")
+	if err == nil {
+		time.Local = loc
+	}
+}
 
 // @title           E-Commerce API Platform
 // @version         2.0
@@ -44,6 +54,10 @@ func main() {
 
 	// --- Phajay Payment Gateway Client ---
 	phajayClient := phajay.NewClient(cfg.PhajaySecretKey)
+
+	// --- Supabase Storage Client ---
+	supabaseClient := supabase.NewClient(cfg.SupabaseURL, cfg.SupabaseServiceRoleKey)
+	_ = supabaseClient
 
 	// --- Repositories ---
 	userRepo := repository.NewUserRepository(db)
@@ -69,7 +83,7 @@ func main() {
 
 	// Seller Handlers
 	sAuthH := sellerHandler.NewSellerAuthHandler(authUsecase)
-	sProdH := sellerHandler.NewSellerProductHandler(productUsecase)
+	sProdH := sellerHandler.NewSellerProductHandler(productUsecase, supabaseClient)
 
 	// Admin Handlers
 	aAuthH := adminHandler.NewAdminAuthHandler(authUsecase)
@@ -107,6 +121,7 @@ func main() {
 	uPortal.Get("/products", uProdH.GetAllProducts)
 	uPortal.Get("/products/:id", uProdH.GetProductByID)
 	uPortal.Get("/categories", uProdH.GetAllCategories)
+	uPortal.Get("/products/seller/:sellerId", uProdH.GetProductsBySeller)
 
 	// Customer Authenticated Routes
 	uAuth := uPortal.Group("", authMiddleware.Auth())
@@ -139,6 +154,7 @@ func main() {
 	sAuth := sPortal.Group("", authMiddleware.Auth(), authMiddleware.RequireRole("seller"))
 
 	sAuth.Post("/products", sProdH.CreateProduct)
+	sAuth.Post("/products/upload-image", sProdH.UploadImage)
 	sAuth.Get("/products", sProdH.GetMyProducts)
 	sAuth.Put("/products/:id", sProdH.UpdateProduct)
 	sAuth.Delete("/products/:id", sProdH.DeleteProduct)

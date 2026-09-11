@@ -63,3 +63,21 @@ func (h *UserProductHandler) GetAllCategories(c fiber.Ctx) error {
 	}
 	return c.JSON(categories)
 }
+
+// GetProductsBySeller godoc
+// @Summary Get Products by Seller
+// @Description Get list of products by seller
+// @Tags Customer Products
+// @Produce json
+// @Param sellerId path string true "Seller ID"
+// @Success 200 {array} domain.Product
+// @Failure 404 {object} map[string]string
+// @Router /user/products/seller/{sellerId} [get]
+func (h *UserProductHandler) GetProductsBySeller(c fiber.Ctx) error {
+	sellerID := c.Params("sellerId")
+	products, err := h.productUsecase.GetProductsBySellerID(sellerID)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(products)
+}

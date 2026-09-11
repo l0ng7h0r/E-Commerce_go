@@ -5,6 +5,8 @@ CREATE TABLE IF NOT EXISTS orders (
     total_amount   NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
     status         VARCHAR(50) NOT NULL DEFAULT 'pending',
     logistic_branch VARCHAR(255),
+    district       VARCHAR(50),
+    logistic_company VARCHAR(50),
     created_at     TIMESTAMPTZ DEFAULT NOW(),
     updated_at     TIMESTAMPTZ DEFAULT NOW()
 );

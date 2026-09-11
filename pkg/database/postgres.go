@@ -18,6 +18,10 @@ func NewPostgres(dsn string) (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
-	log.Println("Connected to PostgreSQL successfully")
+	if _, err := db.Exec("SET timezone = 'Asia/Bangkok'"); err != nil {
+		log.Printf("Warning: failed to set database timezone: %v", err)
+	}
+
+	log.Println("Connected to PostgreSQL successfully (Timezone: Asia/Bangkok)")
 	return db, nil
 }

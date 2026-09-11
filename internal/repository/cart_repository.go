@@ -34,19 +34,19 @@ func (r *CartRepository) GetOrCreateCart(userID string) (*domain.Cart, error) {
 	// Fetch items
 	itemQuery := `
 		SELECT ci.id, ci.cart_id, ci.product_id, ci.quantity, ci.created_at, ci.updated_at,
-		       p.name, p.price, COALESCE(p.image_url, '')
+		       cp.name, cp.price, COALESCE(cp.image_url, '')
 		FROM cart_items ci
-		JOIN products p ON ci.product_id = p.id
+		JOIN products cp ON ci.product_id = cp.id
 		WHERE ci.cart_id = $1`
 	rows, err := r.db.Query(itemQuery, cart.ID)
 	if err == nil {
 		defer rows.Close()
 		for rows.Next() {
 			var item domain.CartItem
-			var p domain.Product
-			if err := rows.Scan(&item.ID, &item.CartID, &item.ProductID, &item.Quantity, &item.CreatedAt, &item.UpdatedAt, &p.Name, &p.Price, &p.ImageURL); err == nil {
-				p.ID = item.ProductID
-				item.Product = &p
+			var cp domain.CartProduct
+			if err := rows.Scan(&item.ID, &item.CartID, &item.ProductID, &item.Quantity, &item.CreatedAt, &item.UpdatedAt, &cp.Name, &cp.Price, &cp.ImageURL); err == nil {
+				cp.ID = item.ProductID
+				item.Product = &cp
 				cart.Items = append(cart.Items, item)
 			}
 		}

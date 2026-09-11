@@ -1,198 +1,198 @@
 {
     "swagger": "2.0",
     "info": {
+        "description": "Role-Based Microservices API Monorepo (User, Seller, Admin)",
+        "title": "E-Commerce API Platform",
         "contact": {},
-        "description": "API For Customer Management Portal",
-        "title": "Customer API Portal",
         "version": "2.0"
     },
     "host": "localhost:3000",
     "basePath": "/api/v2",
     "paths": {
         "/user/cart": {
-            "delete": {
-                "description": "Clear all items from cart",
-                "produces": [
-                    "application/json"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "additionalProperties": {
-                                "type": "string"
-                            },
-                            "type": "object"
-                        }
-                    }
-                },
+            "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "summary": "Clear Cart",
-                "tags": [
-                    "Customer Cart"
-                ]
-            },
-            "get": {
                 "description": "View user's shopping cart",
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Customer Cart"
+                ],
+                "summary": "View Cart",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Cart"
+                            "$ref": "#/definitions/domain.Cart"
                         }
                     }
-                },
+                }
+            },
+            "delete": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "summary": "View Cart",
+                "description": "Clear all items from cart",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Customer Cart"
-                ]
+                ],
+                "summary": "Clear Cart",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/user/cart/items": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Add product to shopping cart",
                 "consumes": [
                     "application/json"
                 ],
-                "description": "Add product to shopping cart",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer Cart"
+                ],
+                "summary": "Add Item to Cart",
                 "parameters": [
                     {
                         "description": "Add Item Request",
-                        "in": "body",
                         "name": "request",
+                        "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.AddCartItemReq"
+                            "$ref": "#/definitions/domain.AddCartItemReq"
                         }
                     }
-                ],
-                "produces": [
-                    "application/json"
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Cart"
+                            "$ref": "#/definitions/domain.Cart"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
+                            "type": "object",
                             "additionalProperties": {
                                 "type": "string"
-                            },
-                            "type": "object"
+                            }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "summary": "Add Item to Cart",
-                "tags": [
-                    "Customer Cart"
-                ]
+                }
             }
         },
         "/user/cart/items/{productId}": {
-            "delete": {
-                "description": "Remove specific product from cart",
-                "parameters": [
-                    {
-                        "description": "Product ID",
-                        "in": "path",
-                        "name": "productId",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Cart"
-                        }
-                    }
-                },
+            "put": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "summary": "Remove Item from Cart",
-                "tags": [
-                    "Customer Cart"
-                ]
-            },
-            "put": {
+                "description": "Update quantity of item in cart",
                 "consumes": [
                     "application/json"
                 ],
-                "description": "Update quantity of item in cart",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer Cart"
+                ],
+                "summary": "Update Cart Item Quantity",
                 "parameters": [
                     {
+                        "type": "string",
                         "description": "Product ID",
-                        "in": "path",
                         "name": "productId",
-                        "required": true,
-                        "type": "string"
+                        "in": "path",
+                        "required": true
                     },
                     {
                         "description": "Update Item Request",
-                        "in": "body",
                         "name": "request",
+                        "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.UpdateCartItemReq"
+                            "$ref": "#/definitions/domain.UpdateCartItemReq"
                         }
                     }
-                ],
-                "produces": [
-                    "application/json"
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Cart"
+                            "$ref": "#/definitions/domain.Cart"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
+                            "type": "object",
                             "additionalProperties": {
                                 "type": "string"
-                            },
-                            "type": "object"
+                            }
                         }
                     }
-                },
+                }
+            },
+            "delete": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "summary": "Update Cart Item Quantity",
+                "description": "Remove specific product from cart",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Customer Cart"
-                ]
+                ],
+                "summary": "Remove Item from Cart",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "productId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Cart"
+                        }
+                    }
+                }
             }
         },
         "/user/categories": {
@@ -201,308 +201,308 @@
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Customer Products"
+                ],
+                "summary": "List Categories",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
+                            "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Category"
-                            },
-                            "type": "array"
+                                "$ref": "#/definitions/domain.Category"
+                            }
                         }
                     }
-                },
-                "summary": "List Categories",
-                "tags": [
-                    "Customer Products"
-                ]
+                }
             }
         },
         "/user/login": {
             "post": {
+                "description": "Login as customer",
                 "consumes": [
                     "application/json"
                 ],
-                "description": "Login as customer",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer Auth"
+                ],
+                "summary": "Customer Login",
                 "parameters": [
                     {
                         "description": "Login Request",
-                        "in": "body",
                         "name": "request",
+                        "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.LoginReq"
+                            "$ref": "#/definitions/domain.LoginReq"
                         }
                     }
-                ],
-                "produces": [
-                    "application/json"
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.AuthResponse"
+                            "$ref": "#/definitions/domain.AuthResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
+                            "type": "object",
                             "additionalProperties": {
                                 "type": "string"
-                            },
-                            "type": "object"
+                            }
                         }
                     }
-                },
-                "summary": "Customer Login",
-                "tags": [
-                    "Customer Auth"
-                ]
+                }
             }
         },
         "/user/logout": {
             "post": {
+                "description": "Revoke customer refresh token",
                 "consumes": [
                     "application/json"
                 ],
-                "description": "Revoke customer refresh token",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer Auth"
+                ],
+                "summary": "Customer Logout",
                 "parameters": [
                     {
                         "description": "Refresh Token Request",
-                        "in": "body",
                         "name": "request",
+                        "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.RefreshTokenReq"
+                            "$ref": "#/definitions/domain.RefreshTokenReq"
                         }
                     }
-                ],
-                "produces": [
-                    "application/json"
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
+                            "type": "object",
                             "additionalProperties": {
                                 "type": "string"
-                            },
-                            "type": "object"
+                            }
                         }
                     }
-                },
-                "summary": "Customer Logout",
-                "tags": [
-                    "Customer Auth"
-                ]
+                }
             }
         },
         "/user/orders": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Get list of past orders created by logged-in user",
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Customer Orders"
+                ],
+                "summary": "View Order History",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
+                            "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Order"
-                            },
-                            "type": "array"
+                                "$ref": "#/definitions/domain.Order"
+                            }
                         }
                     }
-                },
+                }
+            },
+            "post": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "summary": "View Order History",
-                "tags": [
-                    "Customer Orders"
-                ]
-            },
-            "post": {
+                "description": "Create a new order from items currently in cart",
                 "consumes": [
                     "application/json"
                 ],
-                "description": "Create a new order from items currently in cart",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer Orders"
+                ],
+                "summary": "Create Order (Checkout)",
                 "parameters": [
                     {
                         "description": "Order Request",
-                        "in": "body",
                         "name": "request",
+                        "in": "body",
                         "schema": {
-                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.CreateOrderReq"
+                            "$ref": "#/definitions/domain.CreateOrderReq"
                         }
                     }
-                ],
-                "produces": [
-                    "application/json"
                 ],
                 "responses": {
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Order"
+                            "$ref": "#/definitions/domain.Order"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
+                            "type": "object",
                             "additionalProperties": {
                                 "type": "string"
-                            },
-                            "type": "object"
+                            }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "summary": "Create Order (Checkout)",
-                "tags": [
-                    "Customer Orders"
-                ]
+                }
             }
         },
         "/user/orders/{id}": {
             "get": {
-                "description": "Get specific order details by ID",
-                "parameters": [
-                    {
-                        "description": "Order ID",
-                        "in": "path",
-                        "name": "id",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Order"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "additionalProperties": {
-                                "type": "string"
-                            },
-                            "type": "object"
-                        }
-                    }
-                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "summary": "Get Order Details",
+                "description": "Get specific order details by ID",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Customer Orders"
-                ]
+                ],
+                "summary": "Get Order Details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Order"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/user/payments": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Make payment for an existing order by supplying order_id. Returns Phajay Payment URL.",
                 "consumes": [
                     "application/json"
                 ],
-                "description": "Make payment for an existing order by supplying order_id. Returns Phajay Payment URL.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer Payments"
+                ],
+                "summary": "Create Phajay Payment Link",
                 "parameters": [
                     {
                         "description": "Payment Request",
-                        "in": "body",
                         "name": "request",
+                        "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.CreatePaymentReq"
+                            "$ref": "#/definitions/domain.CreatePaymentReq"
                         }
                     }
-                ],
-                "produces": [
-                    "application/json"
                 ],
                 "responses": {
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.PaymentResponse"
+                            "$ref": "#/definitions/domain.PaymentResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
+                            "type": "object",
                             "additionalProperties": {
                                 "type": "string"
-                            },
-                            "type": "object"
+                            }
                         }
                     }
-                },
+                }
+            }
+        },
+        "/user/payments/order/{orderId}": {
+            "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "summary": "Create Phajay Payment Link",
-                "tags": [
-                    "Customer Payments"
-                ]
-            }
-        },
-        "/user/payments/order/{orderId}": {
-            "get": {
                 "description": "Get payment status for order by order ID",
-                "parameters": [
-                    {
-                        "description": "Order ID",
-                        "in": "path",
-                        "name": "orderId",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Customer Payments"
+                ],
+                "summary": "Get Payment Status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "orderId",
+                        "in": "path",
+                        "required": true
+                    }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Payment"
+                            "$ref": "#/definitions/domain.Payment"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
+                            "type": "object",
                             "additionalProperties": {
                                 "type": "string"
-                            },
-                            "type": "object"
+                            }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "summary": "Get Payment Status",
-                "tags": [
-                    "Customer Payments"
-                ]
+                }
             }
         },
         "/user/products": {
@@ -511,150 +511,242 @@
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Customer Products"
+                ],
+                "summary": "List Products",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
+                            "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Product"
-                            },
-                            "type": "array"
+                                "$ref": "#/definitions/domain.Product"
+                            }
                         }
                     }
-                },
-                "summary": "List Products",
-                "tags": [
-                    "Customer Products"
-                ]
+                }
             }
         },
-        "/user/products/{id}": {
+        "/user/products/seller/{sellerId}": {
             "get": {
-                "description": "Get product detail by ID",
-                "parameters": [
-                    {
-                        "description": "Product ID",
-                        "in": "path",
-                        "name": "id",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
+                "description": "Get list of products by seller",
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Customer Products"
+                ],
+                "summary": "Get Products by Seller",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Seller ID",
+                        "name": "sellerId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Product"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Product"
+                            }
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
+                            "type": "object",
                             "additionalProperties": {
                                 "type": "string"
-                            },
-                            "type": "object"
+                            }
                         }
                     }
-                },
-                "summary": "Get Product Detail",
-                "tags": [
-                    "Customer Products"
-                ]
+                }
             }
         },
-        "/user/refresh": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "description": "Refresh customer access token",
-                "parameters": [
-                    {
-                        "description": "Refresh Token Request",
-                        "in": "body",
-                        "name": "request",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.RefreshTokenReq"
-                        }
-                    }
-                ],
+        "/user/products/{id}": {
+            "get": {
+                "description": "Get product detail by ID",
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Customer Products"
+                ],
+                "summary": "Get Product Detail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.AuthResponse"
+                            "$ref": "#/definitions/domain.Product"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/user/refresh": {
+            "post": {
+                "description": "Refresh customer access token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer Auth"
+                ],
+                "summary": "Refresh Token",
+                "parameters": [
+                    {
+                        "description": "Refresh Token Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.RefreshTokenReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.AuthResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
+                            "type": "object",
                             "additionalProperties": {
                                 "type": "string"
-                            },
-                            "type": "object"
+                            }
                         }
                     }
-                },
-                "summary": "Refresh Token",
-                "tags": [
-                    "Customer Auth"
-                ]
+                }
             }
         },
         "/user/register": {
             "post": {
+                "description": "Register a new customer account",
                 "consumes": [
                     "application/json"
                 ],
-                "description": "Register a new customer account",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customer Auth"
+                ],
+                "summary": "Customer Registration",
                 "parameters": [
                     {
                         "description": "Register Request",
-                        "in": "body",
                         "name": "request",
+                        "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.UserRegisterReq"
+                            "$ref": "#/definitions/domain.UserRegisterReq"
                         }
                     }
-                ],
-                "produces": [
-                    "application/json"
                 ],
                 "responses": {
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.AuthResponse"
+                            "$ref": "#/definitions/domain.AuthResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
+                            "type": "object",
                             "additionalProperties": {
                                 "type": "string"
-                            },
-                            "type": "object"
+                            }
                         }
                     }
-                },
-                "summary": "Customer Registration",
+                }
+            }
+        },
+        "/webhooks/phajay": {
+            "post": {
+                "description": "Webhook callback endpoint invoked by Phajay Payment Gateway",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
-                    "Customer Auth"
-                ]
+                    "Customer Payments"
+                ],
+                "summary": "Phajay Payment Webhook",
+                "parameters": [
+                    {
+                        "description": "Webhook Payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/phajay.WebhookPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
             }
         }
     },
     "definitions": {
-        "github_com_l0ng7h0r_ecommerce_internal_domain.AddCartItemReq": {
+        "domain.AddCartItemReq": {
+            "type": "object",
+            "required": [
+                "product_id",
+                "quantity"
+            ],
             "properties": {
                 "product_id": {
                     "type": "string"
@@ -662,14 +754,10 @@
                 "quantity": {
                     "type": "integer"
                 }
-            },
-            "required": [
-                "product_id",
-                "quantity"
-            ],
-            "type": "object"
+            }
         },
-        "github_com_l0ng7h0r_ecommerce_internal_domain.AuthResponse": {
+        "domain.AuthResponse": {
+            "type": "object",
             "properties": {
                 "access_token": {
                     "type": "string"
@@ -681,18 +769,18 @@
                     "type": "string"
                 },
                 "roles": {
+                    "type": "array",
                     "items": {
                         "type": "string"
-                    },
-                    "type": "array"
+                    }
                 },
                 "user_id": {
                     "type": "string"
                 }
-            },
-            "type": "object"
+            }
         },
-        "github_com_l0ng7h0r_ecommerce_internal_domain.Cart": {
+        "domain.Cart": {
+            "type": "object",
             "properties": {
                 "created_at": {
                     "type": "string"
@@ -701,10 +789,10 @@
                     "type": "string"
                 },
                 "items": {
+                    "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.CartItem"
-                    },
-                    "type": "array"
+                        "$ref": "#/definitions/domain.CartItem"
+                    }
                 },
                 "updated_at": {
                     "type": "string"
@@ -712,10 +800,10 @@
                 "user_id": {
                     "type": "string"
                 }
-            },
-            "type": "object"
+            }
         },
-        "github_com_l0ng7h0r_ecommerce_internal_domain.CartItem": {
+        "domain.CartItem": {
+            "type": "object",
             "properties": {
                 "cart_id": {
                     "type": "string"
@@ -727,7 +815,7 @@
                     "type": "string"
                 },
                 "product": {
-                    "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Product"
+                    "$ref": "#/definitions/domain.CartProduct"
                 },
                 "product_id": {
                     "type": "string"
@@ -738,10 +826,27 @@
                 "updated_at": {
                     "type": "string"
                 }
-            },
-            "type": "object"
+            }
         },
-        "github_com_l0ng7h0r_ecommerce_internal_domain.Category": {
+        "domain.CartProduct": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "image_url": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
+        "domain.Category": {
+            "type": "object",
             "properties": {
                 "created_at": {
                     "type": "string"
@@ -755,29 +860,39 @@
                 "updated_at": {
                     "type": "string"
                 }
-            },
-            "type": "object"
+            }
         },
-        "github_com_l0ng7h0r_ecommerce_internal_domain.CreateOrderReq": {
+        "domain.CreateOrderReq": {
+            "type": "object",
             "properties": {
+                "district": {
+                    "type": "string"
+                },
                 "logistic_branch": {
                     "type": "string"
+                },
+                "logistic_company": {
+                    "type": "string"
                 }
-            },
-            "type": "object"
+            }
         },
-        "github_com_l0ng7h0r_ecommerce_internal_domain.CreatePaymentReq": {
+        "domain.CreatePaymentReq": {
+            "type": "object",
+            "required": [
+                "order_id"
+            ],
             "properties": {
                 "order_id": {
                     "type": "string"
                 }
-            },
-            "required": [
-                "order_id"
-            ],
-            "type": "object"
+            }
         },
-        "github_com_l0ng7h0r_ecommerce_internal_domain.LoginReq": {
+        "domain.LoginReq": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
             "properties": {
                 "email": {
                     "type": "string"
@@ -785,16 +900,15 @@
                 "password": {
                     "type": "string"
                 }
-            },
-            "required": [
-                "email",
-                "password"
-            ],
-            "type": "object"
+            }
         },
-        "github_com_l0ng7h0r_ecommerce_internal_domain.Order": {
+        "domain.Order": {
+            "type": "object",
             "properties": {
                 "created_at": {
+                    "type": "string"
+                },
+                "district": {
                     "type": "string"
                 },
                 "id": {
@@ -803,11 +917,14 @@
                 "logistic_branch": {
                     "type": "string"
                 },
+                "logistic_company": {
+                    "type": "string"
+                },
                 "order_items": {
+                    "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.OrderItem"
-                    },
-                    "type": "array"
+                        "$ref": "#/definitions/domain.OrderItem"
+                    }
                 },
                 "status": {
                     "type": "string"
@@ -821,10 +938,10 @@
                 "user_id": {
                     "type": "string"
                 }
-            },
-            "type": "object"
+            }
         },
-        "github_com_l0ng7h0r_ecommerce_internal_domain.OrderItem": {
+        "domain.OrderItem": {
+            "type": "object",
             "properties": {
                 "id": {
                     "type": "string"
@@ -836,7 +953,7 @@
                     "type": "number"
                 },
                 "product": {
-                    "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Product"
+                    "$ref": "#/definitions/domain.CartProduct"
                 },
                 "product_id": {
                     "type": "string"
@@ -844,10 +961,10 @@
                 "quantity": {
                     "type": "integer"
                 }
-            },
-            "type": "object"
+            }
         },
-        "github_com_l0ng7h0r_ecommerce_internal_domain.Payment": {
+        "domain.Payment": {
+            "type": "object",
             "properties": {
                 "amount": {
                     "type": "number"
@@ -873,10 +990,10 @@
                 "transaction_id": {
                     "type": "string"
                 }
-            },
-            "type": "object"
+            }
         },
-        "github_com_l0ng7h0r_ecommerce_internal_domain.PaymentResponse": {
+        "domain.PaymentResponse": {
+            "type": "object",
             "properties": {
                 "amount": {
                     "type": "number"
@@ -893,10 +1010,10 @@
                 "status": {
                     "type": "string"
                 }
-            },
-            "type": "object"
+            }
         },
-        "github_com_l0ng7h0r_ecommerce_internal_domain.Product": {
+        "domain.Product": {
+            "type": "object",
             "properties": {
                 "category_id": {
                     "type": "string"
@@ -928,32 +1045,36 @@
                 "updated_at": {
                     "type": "string"
                 }
-            },
-            "type": "object"
+            }
         },
-        "github_com_l0ng7h0r_ecommerce_internal_domain.RefreshTokenReq": {
+        "domain.RefreshTokenReq": {
+            "type": "object",
+            "required": [
+                "refresh_token"
+            ],
             "properties": {
                 "refresh_token": {
                     "type": "string"
                 }
-            },
-            "required": [
-                "refresh_token"
-            ],
-            "type": "object"
+            }
         },
-        "github_com_l0ng7h0r_ecommerce_internal_domain.UpdateCartItemReq": {
+        "domain.UpdateCartItemReq": {
+            "type": "object",
+            "required": [
+                "quantity"
+            ],
             "properties": {
                 "quantity": {
                     "type": "integer"
                 }
-            },
-            "required": [
-                "quantity"
-            ],
-            "type": "object"
+            }
         },
-        "github_com_l0ng7h0r_ecommerce_internal_domain.UserRegisterReq": {
+        "domain.UserRegisterReq": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
             "properties": {
                 "email": {
                     "type": "string"
@@ -961,19 +1082,32 @@
                 "password": {
                     "type": "string"
                 }
-            },
-            "required": [
-                "email",
-                "password"
-            ],
-            "type": "object"
+            }
+        },
+        "phajay.WebhookPayload": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "orderNo": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "success, failed, cancelled",
+                    "type": "string"
+                },
+                "transactionId": {
+                    "type": "string"
+                }
+            }
         }
     },
     "securityDefinitions": {
         "BearerAuth": {
-            "in": "header",
+            "type": "apiKey",
             "name": "Authorization",
-            "type": "apiKey"
+            "in": "header"
         }
     }
 }

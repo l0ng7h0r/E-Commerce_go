@@ -4,14 +4,19 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/l0ng7h0r/ecommerce/internal/domain"
 	"github.com/l0ng7h0r/ecommerce/internal/usecase"
+	"github.com/l0ng7h0r/ecommerce/pkg/supabase"
 )
 
 type SellerProductHandler struct {
 	productUsecase *usecase.ProductUsecase
+	supabaseClient *supabase.Client
 }
 
-func NewSellerProductHandler(productUsecase *usecase.ProductUsecase) *SellerProductHandler {
-	return &SellerProductHandler{productUsecase: productUsecase}
+func NewSellerProductHandler(productUsecase *usecase.ProductUsecase, supabaseClient *supabase.Client) *SellerProductHandler {
+	return &SellerProductHandler{
+		productUsecase: productUsecase,
+		supabaseClient: supabaseClient,
+	}
 }
 
 type createCategoryReq struct {
@@ -129,4 +134,29 @@ func (h *SellerProductHandler) DeleteProduct(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.JSON(fiber.Map{"message": "Product deleted successfully"})
+}
+
+// UploadImage godoc
+// @Summary Seller Upload Product Image
+// @Description Upload product image file to Supabase storage and get public URL
+// @Tags Seller Products
+// @Security BearerAuth
+// @Accept multipart/form-data
+// @Produce json
+// @Param image formData file true "Product Image File"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Router /seller/products/upload-image [post]
+func (h *SellerProductHandler) UploadImage(c fiber.Ctx) error {
+	file, err := c.FormFile("image")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "No image file provided in form field 'image'"})
+	}
+
+	publicURL, err := h.supabaseClient.UploadMultipartFile("Prodocts", file, "products")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"image_url": publicURL})
 }

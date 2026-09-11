@@ -25,10 +25,10 @@ func (r *OrderRepository) CreateOrder(order *domain.Order, items []domain.OrderI
 
 	// 1. Insert order
 	query := `
-		INSERT INTO orders (user_id, total_amount, status, logistic_branch)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO orders (user_id, total_amount, status, logistic_branch, logistic_company, district)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id, created_at, updated_at`
-	err = tx.QueryRow(query, order.UserID, order.TotalAmount, order.Status, order.LogisticBranch).
+	err = tx.QueryRow(query, order.UserID, order.TotalAmount, order.Status, order.LogisticBranch, order.LogisticCompany, order.District).
 		Scan(&order.ID, &order.CreatedAt, &order.UpdatedAt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to insert order: %w", err)
@@ -89,19 +89,19 @@ func (r *OrderRepository) GetOrderByID(id string) (*domain.Order, error) {
 
 	itemsQuery := `
 		SELECT oi.id, oi.order_id, oi.product_id, oi.quantity, oi.price,
-		       COALESCE(p.name, ''), COALESCE(p.image_url, '')
+		       COALESCE(cp.name, ''), COALESCE(cp.image_url, '')
 		FROM order_items oi
-		LEFT JOIN products p ON oi.product_id = p.id
+		LEFT JOIN products cp ON oi.product_id = cp.id
 		WHERE oi.order_id = $1`
 	rows, err := r.db.Query(itemsQuery, id)
 	if err == nil {
 		defer rows.Close()
 		for rows.Next() {
 			var item domain.OrderItem
-			var p domain.Product
-			if err := rows.Scan(&item.ID, &item.OrderID, &item.ProductID, &item.Quantity, &item.Price, &p.Name, &p.ImageURL); err == nil {
-				p.ID = item.ProductID
-				item.Product = &p
+			var cp domain.CartProduct
+			if err := rows.Scan(&item.ID, &item.OrderID, &item.ProductID, &item.Quantity, &item.Price, &cp.Name, &cp.ImageURL); err == nil {
+				cp.ID = item.ProductID
+				item.Product = &cp
 				order.OrderItems = append(order.OrderItems, item)
 			}
 		}
@@ -120,7 +120,7 @@ func (r *OrderRepository) GetOrdersByUserID(userID string) ([]*domain.Order, err
 	var orders []*domain.Order
 	for rows.Next() {
 		o := &domain.Order{}
-		if err := rows.Scan(&o.ID, &o.UserID, &o.TotalAmount, &o.Status, &o.LogisticBranch, &o.CreatedAt, &o.UpdatedAt); err != nil {
+		if err := rows.Scan(&o.ID, &o.UserID, &o.TotalAmount, &o.Status, &o.LogisticCompany, &o.LogisticBranch, &o.District, &o.CreatedAt, &o.UpdatedAt); err != nil {
 			return nil, err
 		}
 		orders = append(orders, o)
@@ -129,18 +129,18 @@ func (r *OrderRepository) GetOrdersByUserID(userID string) ([]*domain.Order, err
 	for _, o := range orders {
 		itemsQuery := `
 			SELECT oi.id, oi.order_id, oi.product_id, oi.quantity, oi.price,
-			       COALESCE(p.name, ''), COALESCE(p.image_url, '')
+			       COALESCE(cp.name, ''), COALESCE(cp.image_url, '')
 			FROM order_items oi
-			LEFT JOIN products p ON oi.product_id = p.id
+			LEFT JOIN products cp ON oi.product_id = cp.id
 			WHERE oi.order_id = $1`
 		itemRows, err := r.db.Query(itemsQuery, o.ID)
 		if err == nil {
 			for itemRows.Next() {
 				var item domain.OrderItem
-				var p domain.Product
-				if err := itemRows.Scan(&item.ID, &item.OrderID, &item.ProductID, &item.Quantity, &item.Price, &p.Name, &p.ImageURL); err == nil {
-					p.ID = item.ProductID
-					item.Product = &p
+				var cp domain.CartProduct
+				if err := itemRows.Scan(&item.ID, &item.OrderID, &item.ProductID, &item.Quantity, &item.Price, &cp.Name, &cp.ImageURL); err == nil {
+					cp.ID = item.ProductID
+					item.Product = &cp
 					o.OrderItems = append(o.OrderItems, item)
 				}
 			}

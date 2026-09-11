@@ -58,6 +58,8 @@ func (u *OrderUsecase) CreateOrder(userID string, req *domain.CreateOrderReq) (*
 		TotalAmount:    totalAmount,
 		Status:         "pending",
 		LogisticBranch: req.LogisticBranch,
+		LogisticCompany: req.LogisticCompany,
+		District:       req.District,
 	}
 
 	createdOrder, err := u.orderRepo.CreateOrder(order, orderItems)

@@ -7,12 +7,14 @@ import (
 )
 
 type Config struct {
-	AppPort          string
-	DBDsn            string
-	JWTSecret        string
-	JWTAccessExpiry  string
-	JWTRefreshExpiry string
-	PhajaySecretKey  string
+	AppPort                 string
+	DBDsn                   string
+	JWTSecret               string
+	JWTAccessExpiry         string
+	JWTRefreshExpiry        string
+	PhajaySecretKey         string
+	SupabaseURL             string
+	SupabaseServiceRoleKey string
 }
 
 func Load() *Config {
@@ -25,7 +27,7 @@ func Load() *Config {
 
 	dbDsn := os.Getenv("DB_DSN")
 	if dbDsn == "" {
-		dbDsn = "postgresql://mydatabase:ecommerce1234@localhost:5435/dbecommerce?sslmode=disable"
+		dbDsn = "postgresql://mydatabase:ecommerce1234@localhost:5435/dbecommerce?sslmode=disable&timezone=Asia/Bangkok"
 	}
 
 	jwtSecret := os.Getenv("JWT_SECRET")
@@ -38,12 +40,17 @@ func Load() *Config {
 		phajaySecretKey = "phajay_secret_key"
 	}
 
+	supabaseURL := os.Getenv("SUPABASE_URL")
+	supabaseServiceRoleKey := os.Getenv("SUPABASE_SERVICE_ROLE_KEY")
+
 	return &Config{
-		AppPort:          port,
-		DBDsn:            dbDsn,
-		JWTSecret:        jwtSecret,
-		JWTAccessExpiry:  "15m",
-		JWTRefreshExpiry: "168h",
-		PhajaySecretKey:  phajaySecretKey,
+		AppPort:                 port,
+		DBDsn:                   dbDsn,
+		JWTSecret:               jwtSecret,
+		JWTAccessExpiry:         "15m",
+		JWTRefreshExpiry:        "168h",
+		PhajaySecretKey:         phajaySecretKey,
+		SupabaseURL:             supabaseURL,
+		SupabaseServiceRoleKey: supabaseServiceRoleKey,
 	}
 }
