@@ -28,7 +28,9 @@ func NewUserOrderHandler(orderUsecase *usecase.OrderUsecase) *UserOrderHandler {
 func (h *UserOrderHandler) CreateOrder(c fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
 	var req domain.CreateOrderReq
-	_ = c.Bind().Body(&req)
+	if err := c.Bind().Body(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
 
 	order, err := h.orderUsecase.CreateOrder(userID, &req)
 	if err != nil {

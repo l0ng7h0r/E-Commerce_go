@@ -1,9 +1,9 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "Role-Based Microservices API Monorepo (User, Seller, Admin)",
-        "title": "E-Commerce API Platform",
         "contact": {},
+        "description": "API สำหรับร้านค้า: เข้าสู่ระบบ จัดการสินค้า สร้างหมวดหมู่",
+        "title": "Seller API Portal",
         "version": "2.0"
     },
     "host": "localhost:3000",
@@ -11,401 +11,400 @@
     "paths": {
         "/seller/categories": {
             "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Create a new product category as seller",
                 "consumes": [
                     "application/json"
                 ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Seller Products"
-                ],
-                "summary": "Seller Create Category",
+                "description": "Create a new product category as seller",
                 "parameters": [
                     {
                         "description": "Category Request",
-                        "name": "request",
                         "in": "body",
+                        "name": "request",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/seller.createCategoryReq"
+                            "$ref": "#/definitions/internal_handler_seller.createCategoryReq"
                         }
                     }
+                ],
+                "produces": [
+                    "application/json"
                 ],
                 "responses": {
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/domain.Category"
+                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Category"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "additionalProperties": {
                                 "type": "string"
-                            }
+                            },
+                            "type": "object"
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Seller Create Category",
+                "tags": [
+                    "Seller Products"
+                ]
             }
         },
         "/seller/login": {
             "post": {
-                "description": "Login to Seller Portal",
                 "consumes": [
                     "application/json"
                 ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Seller Auth"
-                ],
-                "summary": "Seller Login",
+                "description": "Login to Seller Portal",
                 "parameters": [
                     {
                         "description": "Login Request",
-                        "name": "request",
                         "in": "body",
+                        "name": "request",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.LoginReq"
+                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.LoginReq"
                         }
                     }
+                ],
+                "produces": [
+                    "application/json"
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.AuthResponse"
+                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.AuthResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
                             "additionalProperties": {
                                 "type": "string"
-                            }
+                            },
+                            "type": "object"
                         }
                     }
-                }
+                },
+                "summary": "Seller Login",
+                "tags": [
+                    "Seller Auth"
+                ]
             }
         },
         "/seller/logout": {
             "post": {
-                "description": "Revoke seller refresh token",
                 "consumes": [
                     "application/json"
                 ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Seller Auth"
-                ],
-                "summary": "Seller Logout",
+                "description": "Revoke seller refresh token",
                 "parameters": [
                     {
                         "description": "Refresh Token Request",
-                        "name": "request",
                         "in": "body",
+                        "name": "request",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.RefreshTokenReq"
+                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.RefreshTokenReq"
                         }
                     }
+                ],
+                "produces": [
+                    "application/json"
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
                             "additionalProperties": {
                                 "type": "string"
-                            }
+                            },
+                            "type": "object"
                         }
                     }
-                }
+                },
+                "summary": "Seller Logout",
+                "tags": [
+                    "Seller Auth"
+                ]
             }
         },
         "/seller/products": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "description": "List products created by logged in seller",
                 "produces": [
                     "application/json"
                 ],
-                "tags": [
-                    "Seller Products"
-                ],
-                "summary": "List Seller Products",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
                             "items": {
-                                "$ref": "#/definitions/domain.Product"
-                            }
+                                "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Product"
+                            },
+                            "type": "array"
                         }
                     }
-                }
-            },
-            "post": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Add a new product for seller store",
+                "summary": "List Seller Products",
+                "tags": [
+                    "Seller Products"
+                ]
+            },
+            "post": {
                 "consumes": [
                     "application/json"
                 ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Seller Products"
-                ],
-                "summary": "Create Product",
+                "description": "Add a new product for seller store",
                 "parameters": [
                     {
                         "description": "Create Product Request",
-                        "name": "request",
                         "in": "body",
+                        "name": "request",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateProductReq"
+                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.CreateProductReq"
                         }
                     }
+                ],
+                "produces": [
+                    "application/json"
                 ],
                 "responses": {
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/domain.Product"
+                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Product"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "additionalProperties": {
                                 "type": "string"
-                            }
+                            },
+                            "type": "object"
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Create Product",
+                "tags": [
+                    "Seller Products"
+                ]
             }
         },
         "/seller/products/upload-image": {
             "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Upload product image file to Supabase storage and get public URL",
                 "consumes": [
                     "multipart/form-data"
                 ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Seller Products"
-                ],
-                "summary": "Seller Upload Product Image",
+                "description": "Upload product image file to Supabase storage and get public URL",
                 "parameters": [
                     {
-                        "type": "file",
                         "description": "Product Image File",
-                        "name": "image",
                         "in": "formData",
-                        "required": true
+                        "name": "image",
+                        "required": true,
+                        "type": "file"
                     }
+                ],
+                "produces": [
+                    "application/json"
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
                             "additionalProperties": {
                                 "type": "string"
-                            }
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "additionalProperties": {
                                 "type": "string"
-                            }
+                            },
+                            "type": "object"
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Seller Upload Product Image",
+                "tags": [
+                    "Seller Products"
+                ]
             }
         },
         "/seller/products/{id}": {
-            "put": {
+            "delete": {
+                "description": "Delete a product owned by seller",
+                "parameters": [
+                    {
+                        "description": "Product ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Update existing seller product details",
+                "summary": "Delete Product",
+                "tags": [
+                    "Seller Products"
+                ]
+            },
+            "put": {
                 "consumes": [
                     "application/json"
                 ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Seller Products"
-                ],
-                "summary": "Update Product",
+                "description": "Update existing seller product details",
                 "parameters": [
                     {
-                        "type": "string",
                         "description": "Product ID",
-                        "name": "id",
                         "in": "path",
-                        "required": true
+                        "name": "id",
+                        "required": true,
+                        "type": "string"
                     },
                     {
                         "description": "Update Product Request",
-                        "name": "request",
                         "in": "body",
+                        "name": "request",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateProductReq"
+                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.UpdateProductReq"
                         }
                     }
+                ],
+                "produces": [
+                    "application/json"
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.Product"
+                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Product"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
                             "additionalProperties": {
                                 "type": "string"
-                            }
+                            },
+                            "type": "object"
                         }
                     }
-                }
-            },
-            "delete": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Delete a product owned by seller",
-                "produces": [
-                    "application/json"
-                ],
+                "summary": "Update Product",
                 "tags": [
                     "Seller Products"
-                ],
-                "summary": "Delete Product",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Product ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
+                ]
             }
         },
         "/seller/refresh": {
             "post": {
-                "description": "Refresh seller access token",
                 "consumes": [
                     "application/json"
                 ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Seller Auth"
-                ],
-                "summary": "Seller Refresh Token",
+                "description": "Refresh seller access token",
                 "parameters": [
                     {
                         "description": "Refresh Token Request",
-                        "name": "request",
                         "in": "body",
+                        "name": "request",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.RefreshTokenReq"
+                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.RefreshTokenReq"
                         }
                     }
+                ],
+                "produces": [
+                    "application/json"
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.AuthResponse"
+                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.AuthResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
                             "additionalProperties": {
                                 "type": "string"
-                            }
+                            },
+                            "type": "object"
                         }
                     }
-                }
+                },
+                "summary": "Seller Refresh Token",
+                "tags": [
+                    "Seller Auth"
+                ]
             }
         }
     },
     "definitions": {
-        "domain.AuthResponse": {
-            "type": "object",
+        "github_com_l0ng7h0r_ecommerce_internal_domain.AuthResponse": {
             "properties": {
                 "access_token": {
                     "type": "string"
@@ -417,18 +416,18 @@
                     "type": "string"
                 },
                 "roles": {
-                    "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "type": "array"
                 },
                 "user_id": {
                     "type": "string"
                 }
-            }
+            },
+            "type": "object"
         },
-        "domain.Category": {
-            "type": "object",
+        "github_com_l0ng7h0r_ecommerce_internal_domain.Category": {
             "properties": {
                 "created_at": {
                     "type": "string"
@@ -442,15 +441,10 @@
                 "updated_at": {
                     "type": "string"
                 }
-            }
+            },
+            "type": "object"
         },
-        "domain.CreateProductReq": {
-            "type": "object",
-            "required": [
-                "name",
-                "price",
-                "stock"
-            ],
+        "github_com_l0ng7h0r_ecommerce_internal_domain.CreateProductReq": {
             "properties": {
                 "category_id": {
                     "type": "string"
@@ -470,14 +464,15 @@
                 "stock": {
                     "type": "integer"
                 }
-            }
-        },
-        "domain.LoginReq": {
-            "type": "object",
+            },
             "required": [
-                "email",
-                "password"
+                "name",
+                "price",
+                "stock"
             ],
+            "type": "object"
+        },
+        "github_com_l0ng7h0r_ecommerce_internal_domain.LoginReq": {
             "properties": {
                 "email": {
                     "type": "string"
@@ -485,10 +480,14 @@
                 "password": {
                     "type": "string"
                 }
-            }
+            },
+            "required": [
+                "email",
+                "password"
+            ],
+            "type": "object"
         },
-        "domain.Product": {
-            "type": "object",
+        "github_com_l0ng7h0r_ecommerce_internal_domain.Product": {
             "properties": {
                 "category_id": {
                     "type": "string"
@@ -520,21 +519,21 @@
                 "updated_at": {
                     "type": "string"
                 }
-            }
+            },
+            "type": "object"
         },
-        "domain.RefreshTokenReq": {
-            "type": "object",
-            "required": [
-                "refresh_token"
-            ],
+        "github_com_l0ng7h0r_ecommerce_internal_domain.RefreshTokenReq": {
             "properties": {
                 "refresh_token": {
                     "type": "string"
                 }
-            }
+            },
+            "required": [
+                "refresh_token"
+            ],
+            "type": "object"
         },
-        "domain.UpdateProductReq": {
-            "type": "object",
+        "github_com_l0ng7h0r_ecommerce_internal_domain.UpdateProductReq": {
             "properties": {
                 "category_id": {
                     "type": "string"
@@ -554,25 +553,26 @@
                 "stock": {
                     "type": "integer"
                 }
-            }
+            },
+            "type": "object"
         },
-        "seller.createCategoryReq": {
-            "type": "object",
-            "required": [
-                "name"
-            ],
+        "internal_handler_seller.createCategoryReq": {
             "properties": {
                 "name": {
                     "type": "string"
                 }
-            }
+            },
+            "required": [
+                "name"
+            ],
+            "type": "object"
         }
     },
     "securityDefinitions": {
         "BearerAuth": {
-            "type": "apiKey",
+            "in": "header",
             "name": "Authorization",
-            "in": "header"
+            "type": "apiKey"
         }
     }
 }

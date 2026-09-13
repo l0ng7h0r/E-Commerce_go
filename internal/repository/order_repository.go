@@ -25,10 +25,10 @@ func (r *OrderRepository) CreateOrder(order *domain.Order, items []domain.OrderI
 
 	// 1. Insert order
 	query := `
-		INSERT INTO orders (user_id, total_amount, status, logistic_branch, logistic_company, district)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO orders (user_id, total_amount, status, phone_number, logistic_branch, logistic_company, district)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id, created_at, updated_at`
-	err = tx.QueryRow(query, order.UserID, order.TotalAmount, order.Status, order.LogisticBranch, order.LogisticCompany, order.District).
+	err = tx.QueryRow(query, order.UserID, order.TotalAmount, order.Status, order.PhoneNumber, order.LogisticBranch, order.LogisticCompany, order.District).
 		Scan(&order.ID, &order.CreatedAt, &order.UpdatedAt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to insert order: %w", err)
@@ -77,9 +77,9 @@ func (r *OrderRepository) RestoreStockForOrder(orderID string) error {
 }
 
 func (r *OrderRepository) GetOrderByID(id string) (*domain.Order, error) {
-	query := `SELECT id, user_id, total_amount, status, COALESCE(logistic_branch, ''), created_at, updated_at FROM orders WHERE id = $1`
+	query := `SELECT id, user_id, total_amount, status, phone_number, logistic_branch, logistic_company, district, created_at, updated_at FROM orders WHERE id = $1`
 	order := &domain.Order{}
-	err := r.db.QueryRow(query, id).Scan(&order.ID, &order.UserID, &order.TotalAmount, &order.Status, &order.LogisticBranch, &order.CreatedAt, &order.UpdatedAt)
+	err := r.db.QueryRow(query, id).Scan(&order.ID, &order.UserID, &order.TotalAmount, &order.Status, &order.PhoneNumber, &order.LogisticBranch, &order.LogisticCompany, &order.District, &order.CreatedAt, &order.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New("order not found")
@@ -110,7 +110,7 @@ func (r *OrderRepository) GetOrderByID(id string) (*domain.Order, error) {
 }
 
 func (r *OrderRepository) GetOrdersByUserID(userID string) ([]*domain.Order, error) {
-	query := `SELECT id, user_id, total_amount, status, COALESCE(logistic_branch, ''), created_at, updated_at FROM orders WHERE user_id = $1 ORDER BY created_at DESC`
+	query := `SELECT id, user_id, total_amount, status, phone_number, logistic_branch, logistic_company, district, created_at, updated_at FROM orders WHERE user_id = $1 ORDER BY created_at DESC`
 	rows, err := r.db.Query(query, userID)
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func (r *OrderRepository) GetOrdersByUserID(userID string) ([]*domain.Order, err
 	var orders []*domain.Order
 	for rows.Next() {
 		o := &domain.Order{}
-		if err := rows.Scan(&o.ID, &o.UserID, &o.TotalAmount, &o.Status, &o.LogisticCompany, &o.LogisticBranch, &o.District, &o.CreatedAt, &o.UpdatedAt); err != nil {
+		if err := rows.Scan(&o.ID, &o.UserID, &o.TotalAmount, &o.Status, &o.PhoneNumber, &o.LogisticBranch, &o.LogisticCompany, &o.District, &o.CreatedAt, &o.UpdatedAt); err != nil {
 			return nil, err
 		}
 		orders = append(orders, o)
@@ -151,7 +151,7 @@ func (r *OrderRepository) GetOrdersByUserID(userID string) ([]*domain.Order, err
 }
 
 func (r *OrderRepository) GetAllOrders() ([]*domain.Order, error) {
-	query := `SELECT id, user_id, total_amount, status, COALESCE(logistic_branch, ''), created_at, updated_at FROM orders ORDER BY created_at DESC`
+	query := `SELECT id, user_id, total_amount, status, phone_number, logistic_branch, logistic_company, district, created_at, updated_at FROM orders ORDER BY created_at DESC`
 	rows, err := r.db.Query(query)
 	if err != nil {
 		return nil, err
@@ -161,7 +161,7 @@ func (r *OrderRepository) GetAllOrders() ([]*domain.Order, error) {
 	var orders []*domain.Order
 	for rows.Next() {
 		o := &domain.Order{}
-		if err := rows.Scan(&o.ID, &o.UserID, &o.TotalAmount, &o.Status, &o.LogisticBranch, &o.CreatedAt, &o.UpdatedAt); err != nil {
+		if err := rows.Scan(&o.ID, &o.UserID, &o.TotalAmount, &o.Status, &o.PhoneNumber, &o.LogisticBranch, &o.LogisticCompany, &o.District, &o.CreatedAt, &o.UpdatedAt); err != nil {
 			return nil, err
 		}
 		orders = append(orders, o)

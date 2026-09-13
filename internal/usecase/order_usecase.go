@@ -57,6 +57,7 @@ func (u *OrderUsecase) CreateOrder(userID string, req *domain.CreateOrderReq) (*
 		UserID:         userID,
 		TotalAmount:    totalAmount,
 		Status:         "pending",
+		PhoneNumber:    req.PhoneNumber,
 		LogisticBranch: req.LogisticBranch,
 		LogisticCompany: req.LogisticCompany,
 		District:       req.District,

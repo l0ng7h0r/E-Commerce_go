@@ -16,6 +16,7 @@ type Order struct {
 	UserID         string      `json:"user_id"`
 	TotalAmount    float64     `json:"total_amount"`
 	Status         string      `json:"status"`
+	PhoneNumber    string      `json:"phone_number,omitempty"`
 	LogisticCompany string      `json:"logistic_company,omitempty"`
 	LogisticBranch string      `json:"logistic_branch,omitempty"`
 	District       string      `json:"district,omitempty"`
@@ -25,9 +26,10 @@ type Order struct {
 }
 
 type CreateOrderReq struct {
+	PhoneNumber     string `json:"phone_number"`
 	LogisticCompany string `json:"logistic_company"`
 	LogisticBranch  string `json:"logistic_branch"`
-	District    string `json:"district"`
+	District        string `json:"district"`
 }
 
 type UpdateOrderStatusReq struct {
