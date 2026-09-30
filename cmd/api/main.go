@@ -52,6 +52,11 @@ func main() {
 	}
 	defer db.Close()
 
+	// Ensure required schema additions
+	if _, err := db.Exec(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS qr_code TEXT;`); err != nil {
+		log.Printf("Warning: failed to ensure qr_code column: %v", err)
+	}
+
 	// --- Phajay Payment Gateway Client ---
 	phajayClient := phajay.NewClient(cfg.PhajaySecretKey)
 
@@ -94,6 +99,20 @@ func main() {
 	// --- Middleware ---
 	authMiddleware := middleware.NewAuthMiddleware(cfg)
 
+	// Background Worker: Auto-cancel expired pending orders (>15 min) and restore stock
+	go func() {
+		ticker := time.NewTicker(30 * time.Second)
+		defer ticker.Stop()
+		for range ticker.C {
+			count, err := orderRepo.CancelExpiredPendingOrders(15 * time.Minute)
+			if err != nil {
+				log.Printf("[AutoCancelWorker] error checking expired orders: %v", err)
+			} else if count > 0 {
+				log.Printf("[AutoCancelWorker] Auto-cancelled %d expired pending order(s) and restored inventory stock", count)
+			}
+		}
+	}()
+
 	app := fiber.New()
 	app.Use(cors.New())
 
@@ -106,6 +125,7 @@ func main() {
 
 	// ── Public Webhooks ────────────────────────────────────────────────────────
 	api.Post("/webhooks/phajay", uPayH.PhajayWebhook)
+	api.Post("/user/payments/webhook", uPayH.PhajayWebhook)
 
 	// ═══════════════════════════════════════════════════════════════════════════
 	// 1. CUSTOMER ROUTER PORTAL (/api/v2/user)
@@ -137,10 +157,13 @@ func main() {
 	uAuth.Post("/orders", uOrderH.CreateOrder)
 	uAuth.Get("/orders", uOrderH.GetMyOrders)
 	uAuth.Get("/orders/:id", uOrderH.GetOrderByID)
+	uAuth.Post("/orders/:id/cancel", uOrderH.CancelOrder)
 
 	// Payments
 	uAuth.Post("/payments", uPayH.CreatePayment)
+	uAuth.Post("/payments/generate-qr", uPayH.GenerateQR)
 	uAuth.Get("/payments/order/:orderId", uPayH.GetPaymentByOrder)
+	uAuth.Get("/payments/order/:orderId/status", uPayH.CheckPaymentStatus)
 
 	// ═══════════════════════════════════════════════════════════════════════════
 	// 2. SELLER ROUTER PORTAL (/api/v2/seller)

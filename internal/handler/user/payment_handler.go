@@ -16,8 +16,8 @@ func NewUserPaymentHandler(paymentUsecase *usecase.PaymentUsecase) *UserPaymentH
 }
 
 // CreatePayment godoc
-// @Summary Create Phajay Payment Link
-// @Description Make payment for an existing order by supplying order_id. Returns Phajay Payment URL.
+// @Summary Create Phajay Payment Link (redirect)
+// @Description Legacy redirect-based payment – returns external Phajay URL.
 // @Tags Customer Payments
 // @Security BearerAuth
 // @Accept json
@@ -40,9 +40,56 @@ func (h *UserPaymentHandler) CreatePayment(c fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(paymentRes)
 }
 
+// GenerateQR godoc
+// @Summary Generate Direct QR Code for Payment
+// @Description Generates a Phajay QR Code string (EMVCo) for in-app scanning. No redirect needed.
+// @Tags Customer Payments
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body domain.GenerateQRReq true "QR Generation Request"
+// @Success 201 {object} domain.GenerateQRResponse
+// @Failure 400 {object} map[string]string
+// @Router /user/payments/generate-qr [post]
+func (h *UserPaymentHandler) GenerateQR(c fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	var req domain.GenerateQRReq
+	if err := c.Bind().Body(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	qrRes, err := h.paymentUsecase.GenerateQR(userID, &req)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(fiber.StatusCreated).JSON(qrRes)
+}
+
+// CheckPaymentStatus godoc
+// @Summary Check QR Payment Status (poll)
+// @Description Polls Phajay for live transaction status and syncs the DB. Used by frontend polling.
+// @Tags Customer Payments
+// @Security BearerAuth
+// @Produce json
+// @Param orderId path string true "Order ID"
+// @Success 200 {object} domain.PaymentStatusResponse
+// @Failure 400 {object} map[string]string
+// @Router /user/payments/order/{orderId}/status [get]
+func (h *UserPaymentHandler) CheckPaymentStatus(c fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	orderID := c.Params("orderId")
+	roles, _ := c.Locals("user_roles").([]string)
+
+	status, err := h.paymentUsecase.CheckPaymentStatus(orderID, userID, roles)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(status)
+}
+
 // PhajayWebhook godoc
 // @Summary Phajay Payment Webhook
-// @Description Webhook callback endpoint invoked by Phajay Payment Gateway
+// @Description Webhook callback endpoint invoked by Phajay Payment Gateway when a transaction completes or fails.
 // @Tags Customer Payments
 // @Accept json
 // @Produce json
@@ -65,7 +112,7 @@ func (h *UserPaymentHandler) PhajayWebhook(c fiber.Ctx) error {
 
 // GetPaymentByOrder godoc
 // @Summary Get Payment Status
-// @Description Get payment status for order by order ID
+// @Description Get payment record for order by order ID
 // @Tags Customer Payments
 // @Security BearerAuth
 // @Produce json

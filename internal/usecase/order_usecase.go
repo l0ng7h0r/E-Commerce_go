@@ -105,5 +105,32 @@ func (u *OrderUsecase) GetAllOrders() ([]*domain.Order, error) {
 }
 
 func (u *OrderUsecase) UpdateOrderStatus(id, status string) error {
+	if status == "cancelled" {
+		_, err := u.orderRepo.CancelOrderWithStockRestore(id, "")
+		return err
+	}
 	return u.orderRepo.UpdateOrderStatus(id, status)
 }
+
+func (u *OrderUsecase) CancelOrderByUser(orderID, userID string) error {
+	order, err := u.orderRepo.GetOrderByID(orderID)
+	if err != nil {
+		return err
+	}
+	if order.UserID != userID {
+		return errors.New("unauthorized to cancel this order")
+	}
+	if order.Status != "pending" {
+		return errors.New("only pending orders can be cancelled")
+	}
+
+	cancelled, err := u.orderRepo.CancelOrderWithStockRestore(orderID, "pending")
+	if err != nil {
+		return err
+	}
+	if !cancelled {
+		return errors.New("order could not be cancelled or was already processed")
+	}
+	return nil
+}
+

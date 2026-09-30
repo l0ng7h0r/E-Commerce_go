@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/l0ng7h0r/ecommerce/internal/domain"
 )
@@ -76,7 +77,81 @@ func (r *OrderRepository) RestoreStockForOrder(orderID string) error {
 	return err
 }
 
+// CancelOrderWithStockRestore cancels an order and restores its reserved stock atomically.
+// If allowedCurrentStatus is provided (e.g. "pending"), only orders currently in that status can be cancelled.
+func (r *OrderRepository) CancelOrderWithStockRestore(orderID string, allowedCurrentStatus string) (bool, error) {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback()
+
+	var res sql.Result
+	if allowedCurrentStatus != "" {
+		res, err = tx.Exec(`UPDATE orders SET status = 'cancelled', updated_at = NOW() WHERE id = $1 AND status = $2`, orderID, allowedCurrentStatus)
+	} else {
+		res, err = tx.Exec(`UPDATE orders SET status = 'cancelled', updated_at = NOW() WHERE id = $1 AND status != 'cancelled'`, orderID)
+	}
+	if err != nil {
+		return false, fmt.Errorf("failed to cancel order: %w", err)
+	}
+
+	affected, err := res.RowsAffected()
+	if err != nil || affected == 0 {
+		return false, nil
+	}
+
+	// Restore product inventory
+	restoreStockQuery := `
+		UPDATE products p
+		SET stock = p.stock + oi.quantity, updated_at = NOW()
+		FROM order_items oi
+		WHERE oi.product_id = p.id AND oi.order_id = $1`
+	if _, err := tx.Exec(restoreStockQuery, orderID); err != nil {
+		return false, fmt.Errorf("failed to restore stock for order %s: %w", orderID, err)
+	}
+
+	// Cancel associated pending payments
+	_, _ = tx.Exec(`UPDATE payments SET status = 'cancelled' WHERE order_id = $1 AND status = 'pending'`, orderID)
+
+	if err := tx.Commit(); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// CancelExpiredPendingOrders checks for orders that have been pending longer than timeout,
+// cancels them, and restores their stock atomically.
+func (r *OrderRepository) CancelExpiredPendingOrders(timeout time.Duration) (int, error) {
+	seconds := int64(timeout.Seconds())
+	query := `SELECT id FROM orders WHERE status = 'pending' AND created_at < NOW() - ($1 * INTERVAL '1 second')`
+	rows, err := r.db.Query(query, seconds)
+	if err != nil {
+		return 0, err
+	}
+	defer rows.Close()
+
+	var expiredIDs []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err == nil {
+			expiredIDs = append(expiredIDs, id)
+		}
+	}
+
+	cancelledCount := 0
+	for _, id := range expiredIDs {
+		cancelled, err := r.CancelOrderWithStockRestore(id, "pending")
+		if err == nil && cancelled {
+			cancelledCount++
+		}
+	}
+
+	return cancelledCount, nil
+}
+
 func (r *OrderRepository) GetOrderByID(id string) (*domain.Order, error) {
+	_, _ = r.CancelExpiredPendingOrders(15 * time.Minute)
 	query := `SELECT id, user_id, total_amount, status, phone_number, logistic_branch, logistic_company, district, created_at, updated_at FROM orders WHERE id = $1`
 	order := &domain.Order{}
 	err := r.db.QueryRow(query, id).Scan(&order.ID, &order.UserID, &order.TotalAmount, &order.Status, &order.PhoneNumber, &order.LogisticBranch, &order.LogisticCompany, &order.District, &order.CreatedAt, &order.UpdatedAt)
@@ -110,6 +185,7 @@ func (r *OrderRepository) GetOrderByID(id string) (*domain.Order, error) {
 }
 
 func (r *OrderRepository) GetOrdersByUserID(userID string) ([]*domain.Order, error) {
+	_, _ = r.CancelExpiredPendingOrders(15 * time.Minute)
 	query := `SELECT id, user_id, total_amount, status, phone_number, logistic_branch, logistic_company, district, created_at, updated_at FROM orders WHERE user_id = $1 ORDER BY created_at DESC`
 	rows, err := r.db.Query(query, userID)
 	if err != nil {
@@ -151,6 +227,7 @@ func (r *OrderRepository) GetOrdersByUserID(userID string) ([]*domain.Order, err
 }
 
 func (r *OrderRepository) GetAllOrders() ([]*domain.Order, error) {
+	_, _ = r.CancelExpiredPendingOrders(15 * time.Minute)
 	query := `SELECT id, user_id, total_amount, status, phone_number, logistic_branch, logistic_company, district, created_at, updated_at FROM orders ORDER BY created_at DESC`
 	rows, err := r.db.Query(query)
 	if err != nil {

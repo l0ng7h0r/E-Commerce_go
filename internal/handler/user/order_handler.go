@@ -77,3 +77,24 @@ func (h *UserOrderHandler) GetOrderByID(c fiber.Ctx) error {
 	}
 	return c.JSON(order)
 }
+
+// CancelOrder godoc
+// @Summary Cancel Order
+// @Description Cancel a pending order and release reserved stock
+// @Tags Customer Orders
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Order ID"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Router /user/orders/{id}/cancel [post]
+func (h *UserOrderHandler) CancelOrder(c fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	orderID := c.Params("id")
+
+	if err := h.orderUsecase.CancelOrderByUser(orderID, userID); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"message": "Order cancelled successfully and stock restored"})
+}
+

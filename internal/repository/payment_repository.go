@@ -18,10 +18,10 @@ func NewPaymentRepository(db *sql.DB) *PaymentRepository {
 
 func (r *PaymentRepository) CreatePayment(payment *domain.Payment) (*domain.Payment, error) {
 	query := `
-		INSERT INTO payments (order_id, amount, status, transaction_id, method, payment_url)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO payments (order_id, amount, status, transaction_id, method, payment_url, qr_code)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id, created_at`
-	err := r.db.QueryRow(query, payment.OrderID, payment.Amount, payment.Status, payment.TransactionID, payment.Method, payment.PaymentURL).
+	err := r.db.QueryRow(query, payment.OrderID, payment.Amount, payment.Status, payment.TransactionID, payment.Method, payment.PaymentURL, payment.QRCode).
 		Scan(&payment.ID, &payment.CreatedAt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create payment: %w", err)
@@ -30,9 +30,22 @@ func (r *PaymentRepository) CreatePayment(payment *domain.Payment) (*domain.Paym
 }
 
 func (r *PaymentRepository) GetPaymentByOrderID(orderID string) (*domain.Payment, error) {
-	query := `SELECT id, order_id, amount, status, COALESCE(transaction_id, ''), COALESCE(method, 'phajay'), COALESCE(payment_url, ''), created_at FROM payments WHERE order_id = $1`
+	query := `SELECT id, order_id, amount, status, COALESCE(transaction_id, ''), COALESCE(method, 'phajay'), COALESCE(payment_url, ''), COALESCE(qr_code, ''), created_at FROM payments WHERE order_id = $1`
 	p := &domain.Payment{}
-	err := r.db.QueryRow(query, orderID).Scan(&p.ID, &p.OrderID, &p.Amount, &p.Status, &p.TransactionID, &p.Method, &p.PaymentURL, &p.CreatedAt)
+	err := r.db.QueryRow(query, orderID).Scan(&p.ID, &p.OrderID, &p.Amount, &p.Status, &p.TransactionID, &p.Method, &p.PaymentURL, &p.QRCode, &p.CreatedAt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New("payment not found")
+		}
+		return nil, err
+	}
+	return p, nil
+}
+
+func (r *PaymentRepository) GetPaymentByTransactionID(transactionID string) (*domain.Payment, error) {
+	query := `SELECT id, order_id, amount, status, COALESCE(transaction_id, ''), COALESCE(method, 'phajay'), COALESCE(payment_url, ''), COALESCE(qr_code, ''), created_at FROM payments WHERE transaction_id = $1`
+	p := &domain.Payment{}
+	err := r.db.QueryRow(query, transactionID).Scan(&p.ID, &p.OrderID, &p.Amount, &p.Status, &p.TransactionID, &p.Method, &p.PaymentURL, &p.QRCode, &p.CreatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New("payment not found")
