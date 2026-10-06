@@ -164,7 +164,7 @@ func (r *OrderRepository) GetOrderByID(id string) (*domain.Order, error) {
 
 	itemsQuery := `
 		SELECT oi.id, oi.order_id, oi.product_id, oi.quantity, oi.price,
-		       COALESCE(cp.name, ''), COALESCE(cp.image_url, '')
+		       COALESCE(cp.name, ''), COALESCE(cp.image_url, ''), COALESCE(cp.stock, 0)
 		FROM order_items oi
 		LEFT JOIN products cp ON oi.product_id = cp.id
 		WHERE oi.order_id = $1`
@@ -174,13 +174,18 @@ func (r *OrderRepository) GetOrderByID(id string) (*domain.Order, error) {
 		for rows.Next() {
 			var item domain.OrderItem
 			var cp domain.CartProduct
-			if err := rows.Scan(&item.ID, &item.OrderID, &item.ProductID, &item.Quantity, &item.Price, &cp.Name, &cp.ImageURL); err == nil {
+			if err := rows.Scan(&item.ID, &item.OrderID, &item.ProductID, &item.Quantity, &item.Price, &cp.Name, &cp.ImageURL, &cp.Stock); err == nil {
 				cp.ID = item.ProductID
 				item.Product = &cp
 				order.OrderItems = append(order.OrderItems, item)
 			}
 		}
 	}
+
+
+
+
+
 	return order, nil
 }
 
@@ -205,7 +210,7 @@ func (r *OrderRepository) GetOrdersByUserID(userID string) ([]*domain.Order, err
 	for _, o := range orders {
 		itemsQuery := `
 			SELECT oi.id, oi.order_id, oi.product_id, oi.quantity, oi.price,
-			       COALESCE(cp.name, ''), COALESCE(cp.image_url, '')
+			       COALESCE(cp.name, ''), COALESCE(cp.image_url, ''), COALESCE(cp.stock, 0)
 			FROM order_items oi
 			LEFT JOIN products cp ON oi.product_id = cp.id
 			WHERE oi.order_id = $1`
@@ -214,7 +219,7 @@ func (r *OrderRepository) GetOrdersByUserID(userID string) ([]*domain.Order, err
 			for itemRows.Next() {
 				var item domain.OrderItem
 				var cp domain.CartProduct
-				if err := itemRows.Scan(&item.ID, &item.OrderID, &item.ProductID, &item.Quantity, &item.Price, &cp.Name, &cp.ImageURL); err == nil {
+				if err := itemRows.Scan(&item.ID, &item.OrderID, &item.ProductID, &item.Quantity, &item.Price, &cp.Name, &cp.ImageURL, &cp.Stock); err == nil {
 					cp.ID = item.ProductID
 					item.Product = &cp
 					o.OrderItems = append(o.OrderItems, item)
@@ -243,7 +248,101 @@ func (r *OrderRepository) GetAllOrders() ([]*domain.Order, error) {
 		}
 		orders = append(orders, o)
 	}
+
+	for _, o := range orders {
+		itemsQuery := `
+			SELECT oi.id, oi.order_id, oi.product_id, oi.quantity, oi.price,
+			       COALESCE(cp.name, ''), COALESCE(cp.image_url, ''), COALESCE(cp.stock, 0)
+			FROM order_items oi
+			LEFT JOIN products cp ON oi.product_id = cp.id
+			WHERE oi.order_id = $1`
+		itemRows, err := r.db.Query(itemsQuery, o.ID)
+		if err == nil {
+			for itemRows.Next() {
+				var item domain.OrderItem
+				var cp domain.CartProduct
+				if err := itemRows.Scan(&item.ID, &item.OrderID, &item.ProductID, &item.Quantity, &item.Price, &cp.Name, &cp.ImageURL, &cp.Stock); err == nil {
+					cp.ID = item.ProductID
+					item.Product = &cp
+					o.OrderItems = append(o.OrderItems, item)
+				}
+			}
+			itemRows.Close()
+		}
+	}
 	return orders, nil
+}
+
+func (r *OrderRepository) GetOrdersBySellerID(sellerID string) ([]*domain.Order, error) {
+	_, _ = r.CancelExpiredPendingOrders(15 * time.Minute)
+	query := `
+		SELECT DISTINCT o.id, o.user_id, o.total_amount, o.status, o.phone_number,
+		       o.logistic_branch, o.logistic_company, o.district, o.created_at, o.updated_at
+		FROM orders o
+		JOIN order_items oi ON oi.order_id = o.id
+		JOIN products p ON p.id = oi.product_id
+		WHERE p.seller_id = $1
+		ORDER BY o.created_at DESC`
+	rows, err := r.db.Query(query, sellerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var orders []*domain.Order
+	for rows.Next() {
+		o := &domain.Order{}
+		if err := rows.Scan(&o.ID, &o.UserID, &o.TotalAmount, &o.Status, &o.PhoneNumber, &o.LogisticBranch, &o.LogisticCompany, &o.District, &o.CreatedAt, &o.UpdatedAt); err != nil {
+			return nil, err
+		}
+		orders = append(orders, o)
+	}
+
+	for _, o := range orders {
+		itemsQuery := `
+			SELECT oi.id, oi.order_id, oi.product_id, oi.quantity, oi.price,
+			       COALESCE(cp.name, ''), COALESCE(cp.image_url, ''), COALESCE(cp.stock, 0)
+			FROM order_items oi
+			JOIN products cp ON oi.product_id = cp.id
+			WHERE oi.order_id = $1 AND cp.seller_id = $2`
+		itemRows, err := r.db.Query(itemsQuery, o.ID, sellerID)
+		if err == nil {
+			for itemRows.Next() {
+				var item domain.OrderItem
+				var cp domain.CartProduct
+				if err := itemRows.Scan(&item.ID, &item.OrderID, &item.ProductID, &item.Quantity, &item.Price, &cp.Name, &cp.ImageURL, &cp.Stock); err == nil {
+					cp.ID = item.ProductID
+					item.Product = &cp
+					o.OrderItems = append(o.OrderItems, item)
+				}
+			}
+			itemRows.Close()
+		}
+	}
+	return orders, nil
+}
+
+func (r *OrderRepository) UpdateOrderStatusBySeller(orderID, sellerID, status string) error {
+	var exists bool
+	checkQuery := `
+		SELECT EXISTS (
+			SELECT 1 FROM order_items oi
+			JOIN products p ON oi.product_id = p.id
+			WHERE oi.order_id = $1 AND p.seller_id = $2
+		)`
+	err := r.db.QueryRow(checkQuery, orderID, sellerID).Scan(&exists)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return errors.New("unauthorized: this order does not contain products from your store")
+	}
+
+	if status == "cancelled" {
+		_, err := r.CancelOrderWithStockRestore(orderID, "")
+		return err
+	}
+	return r.UpdateOrderStatus(orderID, status)
 }
 
 func (r *OrderRepository) UpdateOrderStatus(id, status string) error {

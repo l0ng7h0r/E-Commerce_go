@@ -134,3 +134,10 @@ func (u *OrderUsecase) CancelOrderByUser(orderID, userID string) error {
 	return nil
 }
 
+func (u *OrderUsecase) GetSellerOrders(sellerID string) ([]*domain.Order, error) {
+	return u.orderRepo.GetOrdersBySellerID(sellerID)
+}
+
+func (u *OrderUsecase) UpdateOrderStatusBySeller(orderID, sellerID, status string) error {
+	return u.orderRepo.UpdateOrderStatusBySeller(orderID, sellerID, status)
+}

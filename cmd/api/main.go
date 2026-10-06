@@ -89,6 +89,7 @@ func main() {
 	// Seller Handlers
 	sAuthH := sellerHandler.NewSellerAuthHandler(authUsecase)
 	sProdH := sellerHandler.NewSellerProductHandler(productUsecase, supabaseClient)
+	sOrderH := sellerHandler.NewSellerOrderHandler(orderUsecase)
 
 	// Admin Handlers
 	aAuthH := adminHandler.NewAdminAuthHandler(authUsecase)
@@ -182,6 +183,9 @@ func main() {
 	sAuth.Put("/products/:id", sProdH.UpdateProduct)
 	sAuth.Delete("/products/:id", sProdH.DeleteProduct)
 	sAuth.Post("/categories", sProdH.CreateCategory)
+	sAuth.Get("/orders", sOrderH.GetMyOrders)
+	sAuth.Put("/orders/:id/status", sOrderH.UpdateOrderStatus)
+	sAuth.Patch("/orders/:id/status", sOrderH.UpdateOrderStatus)
 
 	// ═══════════════════════════════════════════════════════════════════════════
 	// 3. ADMIN ROUTER PORTAL (/api/v2/admin)

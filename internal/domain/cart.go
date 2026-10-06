@@ -25,6 +25,7 @@ type CartProduct struct {
 	Name     string  `json:"name"`
 	Price    float64 `json:"price"`
 	ImageURL string  `json:"image_url"`
+	Stock    int     `json:"stock"`
 }
 
 type AddCartItemReq struct {
