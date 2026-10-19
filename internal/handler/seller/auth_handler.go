@@ -14,6 +14,7 @@ func NewSellerAuthHandler(authUsecase *usecase.AuthUsecase) *SellerAuthHandler {
 	return &SellerAuthHandler{authUsecase: authUsecase}
 }
 
+
 // Login godoc
 // @Summary Seller Login
 // @Description Login to Seller Portal
@@ -49,6 +50,8 @@ func (h *SellerAuthHandler) Login(c fiber.Ctx) error {
 
 	return c.JSON(res)
 }
+
+
 
 // Refresh godoc
 // @Summary Seller Refresh Token

@@ -36,7 +36,7 @@ func main() {
 		log.Fatalf("Failed to hash admin password: %v", err)
 	}
 
-	user, err := userRepo.CreateUser(adminEmail, hashedPassword)
+	user, err := userRepo.CreateUser(adminEmail, hashedPassword, "Admin", "", "")
 	if err != nil {
 		log.Fatalf("Failed to create admin user: %v", err)
 	}

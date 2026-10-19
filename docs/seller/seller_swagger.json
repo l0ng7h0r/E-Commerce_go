@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "info": {
         "contact": {},
-        "description": "API สำหรับร้านค้า: เข้าสู่ระบบ จัดการสินค้า สร้างหมวดหมู่",
+        "description": "API for seller registration, login, product management and category management",
         "title": "Seller API Portal",
         "version": "2.0"
     },
@@ -134,6 +134,92 @@
                 "summary": "Seller Logout",
                 "tags": [
                     "Seller Auth"
+                ]
+            }
+        },
+        "/seller/orders": {
+            "get": {
+                "description": "Get customer orders that contain products belonging to this seller",
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.Order"
+                            },
+                            "type": "array"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "List Seller Store Orders",
+                "tags": [
+                    "Seller Orders"
+                ]
+            }
+        },
+        "/seller/orders/{id}/status": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Update order status (processing, shipped, completed, cancelled) for an order containing seller's products",
+                "parameters": [
+                    {
+                        "description": "Order ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "description": "Update Status Request",
+                        "in": "body",
+                        "name": "request",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.UpdateOrderStatusReq"
+                        }
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Update Order Status by Seller",
+                "tags": [
+                    "Seller Orders"
                 ]
             }
         },
@@ -412,6 +498,12 @@
                 "email": {
                     "type": "string"
                 },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
                 "refresh_token": {
                     "type": "string"
                 },
@@ -421,8 +513,31 @@
                     },
                     "type": "array"
                 },
+                "shop_name": {
+                    "type": "string"
+                },
                 "user_id": {
                     "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "github_com_l0ng7h0r_ecommerce_internal_domain.CartProduct": {
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "image_url": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "stock": {
+                    "type": "integer"
                 }
             },
             "type": "object"
@@ -487,6 +602,70 @@
             ],
             "type": "object"
         },
+        "github_com_l0ng7h0r_ecommerce_internal_domain.Order": {
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "district": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "logistic_branch": {
+                    "type": "string"
+                },
+                "logistic_company": {
+                    "type": "string"
+                },
+                "order_items": {
+                    "items": {
+                        "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.OrderItem"
+                    },
+                    "type": "array"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "total_amount": {
+                    "type": "number"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "github_com_l0ng7h0r_ecommerce_internal_domain.OrderItem": {
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "order_id": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "product": {
+                    "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.CartProduct"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
+                }
+            },
+            "type": "object"
+        },
         "github_com_l0ng7h0r_ecommerce_internal_domain.Product": {
             "properties": {
                 "category_id": {
@@ -530,6 +709,17 @@
             },
             "required": [
                 "refresh_token"
+            ],
+            "type": "object"
+        },
+        "github_com_l0ng7h0r_ecommerce_internal_domain.UpdateOrderStatusReq": {
+            "properties": {
+                "status": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "status"
             ],
             "type": "object"
         },

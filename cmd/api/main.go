@@ -53,8 +53,13 @@ func main() {
 	defer db.Close()
 
 	// Ensure required schema additions
-	if _, err := db.Exec(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS qr_code TEXT;`); err != nil {
-		log.Printf("Warning: failed to ensure qr_code column: %v", err)
+	if _, err := db.Exec(`
+		ALTER TABLE payments ADD COLUMN IF NOT EXISTS qr_code TEXT;
+		ALTER TABLE users ADD COLUMN IF NOT EXISTS name VARCHAR(255) DEFAULT '';
+		ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50) DEFAULT '';
+		ALTER TABLE users ADD COLUMN IF NOT EXISTS shop_name VARCHAR(255) DEFAULT '';
+	`); err != nil {
+		log.Printf("Warning: failed to ensure schema additions: %v", err)
 	}
 
 	// --- Phajay Payment Gateway Client ---
@@ -202,6 +207,8 @@ func main() {
 	aAuth.Post("/users", aUserH.CreateUser)
 	aAuth.Get("/users", aUserH.GetAllUsers)
 	aAuth.Get("/users/:id", aUserH.GetUserByID)
+	aAuth.Patch("/users/:id", aAuthH.EditUser)
+	aAuth.Patch("/sellers/:id", aAuthH.EditSeller)
 	aAuth.Delete("/users/:id", aUserH.DeleteUser)
 
 	// Category Management

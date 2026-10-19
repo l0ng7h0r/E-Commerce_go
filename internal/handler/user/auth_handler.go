@@ -30,9 +30,15 @@ func (h *UserAuthHandler) Register(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
 
+	if input.Name == "" || input.Phone == "" || input.Email == "" || input.Password == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Name, phone, email, and password are required"})
+	}
+
 	req := domain.RegisterReq{
 		Email:    input.Email,
 		Password: input.Password,
+		Name:     input.Name,
+		Phone:    input.Phone,
 		Role:     "user",
 	}
 

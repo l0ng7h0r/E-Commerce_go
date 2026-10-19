@@ -16,10 +16,14 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (r *UserRepository) CreateUser(email, hashedPassword string) (*domain.User, error) {
-	query := `INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id, email, created_at, updated_at`
+func (r *UserRepository) CreateUser(email, hashedPassword, name, phone, shopName string) (*domain.User, error) {
+	query := `INSERT INTO users (email, password, name, phone, shop_name) 
+	          VALUES ($1, $2, $3, $4, $5) 
+	          RETURNING id, email, COALESCE(name, ''), COALESCE(phone, ''), COALESCE(shop_name, ''), created_at, updated_at`
 	user := &domain.User{}
-	err := r.db.QueryRow(query, email, hashedPassword).Scan(&user.ID, &user.Email, &user.CreatedAt, &user.UpdatedAt)
+	err := r.db.QueryRow(query, email, hashedPassword, name, phone, shopName).Scan(
+		&user.ID, &user.Email, &user.Name, &user.Phone, &user.ShopName, &user.CreatedAt, &user.UpdatedAt,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
@@ -69,9 +73,28 @@ func (r *UserRepository) GetUserRoles(userID string) ([]string, error) {
 }
 
 func (r *UserRepository) GetUserByEmail(email string) (*domain.User, error) {
-	query := `SELECT id, email, password, created_at, updated_at FROM users WHERE email = $1`
+	query := `SELECT id, email, password, COALESCE(name, ''), COALESCE(phone, ''), COALESCE(shop_name, ''), created_at, updated_at FROM users WHERE email = $1`
 	user := &domain.User{}
-	err := r.db.QueryRow(query, email).Scan(&user.ID, &user.Email, &user.Password, &user.CreatedAt, &user.UpdatedAt)
+	err := r.db.QueryRow(query, email).Scan(&user.ID, &user.Email, &user.Password, &user.Name, &user.Phone, &user.ShopName, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+	roles, err := r.GetUserRoles(user.ID)
+	if err == nil {
+		user.Roles = roles
+	}
+	return user, nil
+}
+
+func (r *UserRepository) GetUserByEmailOrPhone(identifier string) (*domain.User, error) {
+	query := `SELECT id, email, password, COALESCE(name, ''), COALESCE(phone, ''), COALESCE(shop_name, ''), created_at, updated_at 
+	          FROM users 
+	          WHERE email = $1 OR phone = $1`
+	user := &domain.User{}
+	err := r.db.QueryRow(query, identifier).Scan(&user.ID, &user.Email, &user.Password, &user.Name, &user.Phone, &user.ShopName, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New("user not found")
@@ -86,9 +109,9 @@ func (r *UserRepository) GetUserByEmail(email string) (*domain.User, error) {
 }
 
 func (r *UserRepository) GetUserByID(id string) (*domain.User, error) {
-	query := `SELECT id, email, password, created_at, updated_at FROM users WHERE id = $1`
+	query := `SELECT id, email, password, COALESCE(name, ''), COALESCE(phone, ''), COALESCE(shop_name, ''), created_at, updated_at FROM users WHERE id = $1`
 	user := &domain.User{}
-	err := r.db.QueryRow(query, id).Scan(&user.ID, &user.Email, &user.Password, &user.CreatedAt, &user.UpdatedAt)
+	err := r.db.QueryRow(query, id).Scan(&user.ID, &user.Email, &user.Password, &user.Name, &user.Phone, &user.ShopName, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New("user not found")
@@ -99,6 +122,30 @@ func (r *UserRepository) GetUserByID(id string) (*domain.User, error) {
 	if err == nil {
 		user.Roles = roles
 	}
+	return user, nil
+}
+
+func (r *UserRepository) EditUser(id string, email, name, phone string) (*domain.User, error) {
+	query := `UPDATE users SET email = $1, name = $2, phone = $3, updated_at = NOW() WHERE id = $4 RETURNING id, email, COALESCE(name,''), COALESCE(phone,''), COALESCE(shop_name,''), created_at, updated_at`
+	user := &domain.User{}
+	err := r.db.QueryRow(query, email, name, phone, id).Scan(&user.ID, &user.Email, &user.Name, &user.Phone, &user.ShopName, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	roles, _ := r.GetUserRoles(user.ID)
+	user.Roles = roles
+	return user, nil
+}
+
+func (r *UserRepository) EditSeller(id string, email, name, phone, shopName string) (*domain.User, error) {
+	query := `UPDATE users SET email = $1, name = $2, phone = $3, shop_name = $4, updated_at = NOW() WHERE id = $5 RETURNING id, email, COALESCE(name,''), COALESCE(phone,''), COALESCE(shop_name,''), created_at, updated_at`
+	user := &domain.User{}
+	err := r.db.QueryRow(query, email, name, phone, shopName, id).Scan(&user.ID, &user.Email, &user.Name, &user.Phone, &user.ShopName, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	roles, _ := r.GetUserRoles(user.ID)
+	user.Roles = roles
 	return user, nil
 }
 
@@ -128,7 +175,7 @@ func (r *UserRepository) DeleteRefreshToken(token string) error {
 }
 
 func (r *UserRepository) GetAllUsers() ([]*domain.User, error) {
-	query := `SELECT id, email, created_at, updated_at FROM users ORDER BY created_at DESC`
+	query := `SELECT id, email, COALESCE(name, ''), COALESCE(phone, ''), COALESCE(shop_name, ''), created_at, updated_at FROM users ORDER BY created_at DESC`
 	rows, err := r.db.Query(query)
 	if err != nil {
 		return nil, err
@@ -138,7 +185,7 @@ func (r *UserRepository) GetAllUsers() ([]*domain.User, error) {
 	var users []*domain.User
 	for rows.Next() {
 		u := &domain.User{}
-		if err := rows.Scan(&u.ID, &u.Email, &u.CreatedAt, &u.UpdatedAt); err != nil {
+		if err := rows.Scan(&u.ID, &u.Email, &u.Name, &u.Phone, &u.ShopName, &u.CreatedAt, &u.UpdatedAt); err != nil {
 			return nil, err
 		}
 		roles, _ := r.GetUserRoles(u.ID)

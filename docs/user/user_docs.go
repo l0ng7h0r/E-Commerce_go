@@ -7,7 +7,7 @@ const docTemplate = `{
     "swagger": "2.0",
     "info": {
         "contact": {},
-        "description": "API สำหรับลูกค้า: สมัครสมาชิก เข้าสู่ระบบ เลือกดูสินค้า ตะกร้าสินค้า สั่งซื้อ และชำระเงิน",
+        "description": "API for customer registration, login, product browsing, shopping cart, ordering and payment",
         "title": "Customer API Portal",
         "version": "2.0"
     },
@@ -419,12 +419,58 @@ const docTemplate = `{
                 ]
             }
         },
+        "/user/orders/{id}/cancel": {
+            "post": {
+                "description": "Cancel a pending order and release reserved stock",
+                "parameters": [
+                    {
+                        "description": "Order ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Cancel Order",
+                "tags": [
+                    "Customer Orders"
+                ]
+            }
+        },
         "/user/payments": {
             "post": {
                 "consumes": [
                     "application/json"
                 ],
-                "description": "Make payment for an existing order by supplying order_id. Returns Phajay Payment URL.",
+                "description": "Legacy redirect-based payment – returns external Phajay URL.",
                 "parameters": [
                     {
                         "description": "Payment Request",
@@ -461,7 +507,55 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "summary": "Create Phajay Payment Link",
+                "summary": "Create Phajay Payment Link (redirect)",
+                "tags": [
+                    "Customer Payments"
+                ]
+            }
+        },
+        "/user/payments/generate-qr": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Generates a Phajay QR Code string (EMVCo) for in-app scanning. No redirect needed.",
+                "parameters": [
+                    {
+                        "description": "QR Generation Request",
+                        "in": "body",
+                        "name": "request",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.GenerateQRReq"
+                        }
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.GenerateQRResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Generate Direct QR Code for Payment",
                 "tags": [
                     "Customer Payments"
                 ]
@@ -469,7 +563,7 @@ const docTemplate = `{
         },
         "/user/payments/order/{orderId}": {
             "get": {
-                "description": "Get payment status for order by order ID",
+                "description": "Get payment record for order by order ID",
                 "parameters": [
                     {
                         "description": "Order ID",
@@ -505,6 +599,49 @@ const docTemplate = `{
                     }
                 ],
                 "summary": "Get Payment Status",
+                "tags": [
+                    "Customer Payments"
+                ]
+            }
+        },
+        "/user/payments/order/{orderId}/status": {
+            "get": {
+                "description": "Polls Phajay for live transaction status and syncs the DB. Used by frontend polling.",
+                "parameters": [
+                    {
+                        "description": "Order ID",
+                        "in": "path",
+                        "name": "orderId",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_l0ng7h0r_ecommerce_internal_domain.PaymentStatusResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Check QR Payment Status (poll)",
                 "tags": [
                     "Customer Payments"
                 ]
@@ -723,6 +860,12 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
                 "refresh_token": {
                     "type": "string"
                 },
@@ -731,6 +874,9 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "type": "array"
+                },
+                "shop_name": {
+                    "type": "string"
                 },
                 "user_id": {
                     "type": "string"
@@ -787,23 +933,6 @@ const docTemplate = `{
             },
             "type": "object"
         },
-        "github_com_l0ng7h0r_ecommerce_internal_domain.CartProduct": {
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "image_url": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "price": {
-                    "type": "number"
-                }
-            },
-            "type": "object"
-        },
         "github_com_l0ng7h0r_ecommerce_internal_domain.Category": {
             "properties": {
                 "created_at": {
@@ -847,6 +976,47 @@ const docTemplate = `{
             "required": [
                 "order_id"
             ],
+            "type": "object"
+        },
+        "github_com_l0ng7h0r_ecommerce_internal_domain.GenerateQRReq": {
+            "properties": {
+                "bank": {
+                    "description": "\"BCEL\",\"JDB\",\"LDB\",\"IB\",\"STB\",\"MMONEY\" – defaults to BCEL",
+                    "type": "string"
+                },
+                "order_id": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "order_id"
+            ],
+            "type": "object"
+        },
+        "github_com_l0ng7h0r_ecommerce_internal_domain.GenerateQRResponse": {
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "deep_link": {
+                    "type": "string"
+                },
+                "order_id": {
+                    "type": "string"
+                },
+                "payment_id": {
+                    "type": "string"
+                },
+                "qr_code": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "transaction_id": {
+                    "type": "string"
+                }
+            },
             "type": "object"
         },
         "github_com_l0ng7h0r_ecommerce_internal_domain.LoginReq": {
@@ -948,6 +1118,9 @@ const docTemplate = `{
                 "payment_url": {
                     "type": "string"
                 },
+                "qr_code": {
+                    "type": "string"
+                },
                 "status": {
                     "type": "string"
                 },
@@ -972,6 +1145,29 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "github_com_l0ng7h0r_ecommerce_internal_domain.PaymentStatusResponse": {
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "order_id": {
+                    "type": "string"
+                },
+                "payment_id": {
+                    "type": "string"
+                },
+                "qr_code": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "transaction_id": {
                     "type": "string"
                 }
             },
@@ -1039,13 +1235,21 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "name": {
+                    "type": "string"
+                },
                 "password": {
+                    "type": "string"
+                },
+                "phone": {
                     "type": "string"
                 }
             },
             "required": [
                 "email",
-                "password"
+                "name",
+                "password",
+                "phone"
             ],
             "type": "object"
         }
@@ -1066,7 +1270,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v2",
 	Schemes:          []string{},
 	Title:            "Customer API Portal",
-	Description:      "API สำหรับลูกค้า: สมัครสมาชิก เข้าสู่ระบบ เลือกดูสินค้า ตะกร้าสินค้า สั่งซื้อ และชำระเงิน",
+	Description:      "API for customer registration, login, product browsing, shopping cart, ordering and payment",
 	InfoInstanceName: "user",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

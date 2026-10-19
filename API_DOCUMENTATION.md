@@ -64,10 +64,12 @@ Authorization: Bearer <access_token>
 
 ### 4.1 Authentication (ไม่ต้องแนบ Token)
 
-#### [POST] `/api/v2/user/register` - สมัครสมาชิก
+#### [POST] `/api/v2/user/register` - สมัครสมาชิก (Customer)
 - **Request Body**:
   ```json
   {
+    "name": "สมชาย ใจดี",
+    "phone": "020-5555-8888",
     "email": "customer@example.com",
     "password": "password123"
   }
@@ -79,6 +81,8 @@ Authorization: Bearer <access_token>
     "refresh_token": "eyJhbGciOi...",
     "user_id": "018f...",
     "email": "customer@example.com",
+    "name": "สมชาย ใจดี",
+    "phone": "020-5555-8888",
     "roles": ["user"]
   }
   ```
@@ -372,9 +376,20 @@ Authorization: Bearer <access_token>
 ## 🏪 5. SELLER PORTAL (`/api/v2/seller`)
 
 ### 5.1 Authentication (Seller Role)
-- `POST /api/v2/seller/login`: บัญชีต้องมี role `seller` หรือ `admin` มิฉะนั้นจะตอบกลับ `403 Forbidden`
-- `POST /api/v2/seller/refresh`
-- `POST /api/v2/seller/logout`
+> **หมายเหตุสำคัญ**: บัญชี Seller (ร้านค้า) **ไม่สามารถสมัครสมาชิกด้วยตนเองได้** ต้องให้ Administrator เป็นผู้สร้างบัญชีให้ผ่าน Admin Management Portal (`POST /api/v2/admin/users`) โดยระบุ `role: "seller"` พร้อม `name`, `phone`, และ `shop_name`
+
+#### [POST] `/api/v2/seller/login` - เข้าสู่ระบบ Seller
+- **Request Body**:
+  ```json
+  {
+    "email": "seller@example.com",
+    "password": "password123"
+  }
+  ```
+- บัญชีต้องมี role `seller` หรือ `admin` มิฉะนั้นจะตอบกลับ `403 Forbidden`
+
+#### [POST] `/api/v2/seller/refresh` - ขอ Access Token ใหม่
+#### [POST] `/api/v2/seller/logout` - ออกจากระบบ
 
 ---
 

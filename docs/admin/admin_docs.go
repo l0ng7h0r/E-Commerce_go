@@ -7,7 +7,7 @@ const docTemplate = `{
     "swagger": "2.0",
     "info": {
         "contact": {},
-        "description": "API สำหรับผู้ดูแลระบบ: จัดการผู้ใช้ หมวดหมู่สินค้า ออเดอร์ทั้งหมด",
+        "description": "API for admin management, including user management, product management, category management, and order management",
         "title": "Admin Management Portal",
         "version": "2.0"
     },
@@ -442,6 +442,12 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
                 "refresh_token": {
                     "type": "string"
                 },
@@ -451,25 +457,11 @@ const docTemplate = `{
                     },
                     "type": "array"
                 },
+                "shop_name": {
+                    "type": "string"
+                },
                 "user_id": {
                     "type": "string"
-                }
-            },
-            "type": "object"
-        },
-        "github_com_l0ng7h0r_ecommerce_internal_domain.CartProduct": {
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "image_url": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "price": {
-                    "type": "number"
                 }
             },
             "type": "object"
@@ -586,11 +578,20 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "name": {
+                    "type": "string"
+                },
                 "password": {
+                    "type": "string"
+                },
+                "phone": {
                     "type": "string"
                 },
                 "role": {
                     "description": "Optional, default to \"user\"",
+                    "type": "string"
+                },
+                "shop_name": {
                     "type": "string"
                 }
             },
@@ -622,11 +623,20 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
                 "roles": {
                     "items": {
                         "type": "string"
                     },
                     "type": "array"
+                },
+                "shop_name": {
+                    "type": "string"
                 },
                 "updated_at": {
                     "type": "string"
@@ -662,7 +672,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v2",
 	Schemes:          []string{},
 	Title:            "Admin Management Portal",
-	Description:      "API สำหรับผู้ดูแลระบบ: จัดการผู้ใช้ หมวดหมู่สินค้า ออเดอร์ทั้งหมด",
+	Description:      "API for admin management, including user management, product management, category management, and order management",
 	InfoInstanceName: "admin",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

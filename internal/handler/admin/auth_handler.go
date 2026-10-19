@@ -50,6 +50,72 @@ func (h *AdminAuthHandler) Login(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
+// EditUser godoc
+// @Summary Edit User
+// @Description Edit user profile (name, email, phone) by ID
+// @Tags Admin User Management
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Param request body domain.EditUserReq true "Edit User Request"
+// @Success 200 {object} domain.User
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /admin/users/{id} [patch]
+func (h *AdminAuthHandler) EditUser(c fiber.Ctx) error {
+	id := c.Params("id")
+	var req domain.EditUserReq
+	if err := c.Bind().Body(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+	if id != "" {
+		req.ID = id
+	}
+	if req.ID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "User ID is required"})
+	}
+
+	res, err := h.authUsecase.EditUser(req.ID, req.Email, req.Name, req.Phone)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(res)
+}
+
+// EditSeller godoc
+// @Summary Edit Seller
+// @Description Edit seller profile (name, email, phone, shop_name) by ID
+// @Tags Admin User Management
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path string true "Seller User ID"
+// @Param request body domain.EditSellerReq true "Edit Seller Request"
+// @Success 200 {object} domain.User
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /admin/sellers/{id} [patch]
+func (h *AdminAuthHandler) EditSeller(c fiber.Ctx) error {
+	id := c.Params("id")
+	var req domain.EditSellerReq
+	if err := c.Bind().Body(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+	if id != "" {
+		req.ID = id
+	}
+	if req.ID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Seller ID is required"})
+	}
+
+	res, err := h.authUsecase.EditSeller(req.ID, req.Email, req.Name, req.Phone, req.ShopName)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(res)
+}
+
 // Refresh godoc
 // @Summary Admin Refresh Token
 // @Description Refresh admin access token
